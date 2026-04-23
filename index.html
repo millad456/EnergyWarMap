@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Interactive Map Tracker</title>
+
+    <!-- Leaflet CSS + JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Custom CSS - FIXED PATH -->
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📍 Location Tracker</h1>
+            <p>Interactive map | Click markers for details</p>
+        </header>
+
+        <div id="map" class="map"></div>
+
+        <footer class="footer">
+            <p>Data updates from live source • Click any marker to see information</p>
+        </footer>
+    </div>
+
+    <!-- Custom JS - FIXED PATH -->
+    <script src="./script.js"></script>
+</body>
+
+</html>
