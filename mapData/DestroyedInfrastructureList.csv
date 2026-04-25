@@ -1,0 +1,33 @@
+Country,Facility,Latitude,Longitude,Description,Date,Capacity Taken Out,Source,Confirmed? 
+Russia,Port of Ust-Luga,59.6917,28.4239,Multiple drone strikes triggered fires; destroyed at least one oil-loading berth.,"March 22–31, 2026","~700,000 b/d",Al Jazeera,FALSE
+Russia,Port of Primorsk,60.3667,28.6,Drone strikes caused fuel leaks and reservoir fires; shrapnel hit fuel reservoirs.,2026-03-29,"~40% of storage (~400,000 b/d)",TRT World,FALSE
+Russia,Kirishi Oil Refinery,59.4528,32.3275,Large-scale drone attack hit primary processing units (ELOU-AVT-2/6).,2026-03-26,"~350,000 b/d (Full Halt)",Reuters via Yahoo,FALSE
+USA,Etoile Oil Well,31.3857,-94.4361,Well site explosion triggered a massive fire; derrick collapsed.,2026-04-20,No info found,CBS 19,FALSE
+Australia,Geelong Oil Refinery,-38.0872,144.38,Attributed to technical failures amidst broader energy sector pressure.,2026-04-01,No info found,https://www.trtworld.com/article/d93ddad90806 ,TRUE
+India,Greenfield Refinery,25.9189,72.2353,Fire broke out at the new Pachpadra facility.,2026-04-01,No info found,Instagram (News Update),FALSE
+UAE,Ruwais Refinery,24.1167,52.7333,Multiple fires caused by falling drone debris; operations shut as precaution.,2026-04-05,"922,000 b/d",Wikipedia,FALSE
+Saudi Arabia,Ras Tanura,26.7867,50.1167,Drone debris caused fire at storage tanks; shut for precautionary measures.,2026-03-02,"550,000 b/d",Argus Media,FALSE
+Saudi Arabia,SAMREF Refinery,23.95,38.2167,Drone struck refinery; damage assessment underway with minimal initial impact.,2026-03-19,"~400,000 b/d",Upstream Online,FALSE
+Saudi Arabia,Satorp Refinery,27.05,49.5667,Damage to one of two processing trains prompted a precautionary shutdown.,"April 7–8, 2026","460,000 b/d",Argus Media,FALSE
+Saudi Arabia,Riyadh Refinery,24.5833,46.85,"Attacked directly, affecting exports of refined products.",2026-04-09,"120,000 b/d",Insurance Journal,FALSE
+Bahrain,Bapco Energies,26.1267,50.6067,Force majeure declared after drone strike set Al-Ma'ameer facility ablaze.,2026-03-09,"405,000 b/d",Market Minute,FALSE
+Bahrain,Gulf Petrochemicals,26.1333,50.6333,Operational units caught fire after drone attacks.,2026-04-05,No info found,Insurance Journal,FALSE
+Kuwait,KNPC & PIC,29.3759,47.9774,Multiple operational facilities targeted; fires and significant material damage.,2026-04-05,No info found,Kuwait News Agency,FALSE
+Kuwait,Mina Al-Ahmadi,29.0667,48.1333,Drone strike hit several operational units; second attack in weeks.,2026-04-03,"730,000 b/d",Instagram (InfactoWeaver),FALSE
+Iraq,Lanaz Refinery,36.1911,44.0092,Drone strike sparked a massive fire in fuel storage tanks.,2026-03-14,No info found,Instagram (News Update),FALSE
+Qatar,Ras Laffan LNG,25.9,51.55,Force majeure declared after missile attacks on production trains.,2026-03-02,17% of total capacity,Reuters via Facebook,FALSE
+Qatar,Shell Pearl GTL,25.9,51.55,"Sustained ""extensive damage"" due to missile attacks; repairs may take years.",2026-03-18,"140,000 b/d",BBC,FALSE
+UAE,Habshan Gas,23.6333,53.6,Falling debris from intercepted missiles caused fires and significant damage.,2026-04-03,No info found,Al Jazeera,FALSE
+Iran,South Pars,26.68,52.48,Israeli airstrike targeted facilities at the world's largest gas field.,2026-03-18,No info found,CNN via Instagram,FALSE
+Iran,Isfahan Gas Stn,32.6546,51.668,No info found,No info found,No info found,No info found,FALSE
+UAE,Shah Gas Field,22.95,53.95,No info found,2026-03-16,No info found,No info found,FALSE
+UAE,Das Island LNG,25.15,52.8667,Precautionary shutdowns across offshore UAE.,2026-03-01,No info found,Argus Media,FALSE
+Saudi Arabia,Ju'aymah LPG,26.7867,50.1167,No info found,2026-04-09,No info found,No info found,FALSE
+Saudi Arabia,East-West Pipeline,24.1167,38.3,Drone strike on a pumping station; flows disrupted.,2026-04-08,"700,000 b/d",Financial Times via Instagram,FALSE
+Iraq,Majnoon Oil Field,31.1167,47.6,Basra Oil production process shut or in process of shutting.,2026-03-01,No info found,Argus Media,FALSE
+Saudi Arabia,Manifa Facility,27.6,48.9667,Suspected targeting affecting domestic fuel needs.,2026-04-09,"300,000 b/d",Instagram (Intel),FALSE
+Saudi Arabia,Khurais Facility,25.0833,48.0333,No info found,No info found,"300,000 b/d",No info found,FALSE
+Russia,NORSI Refinery,56.1264,44.1736,Suspended operations following a Ukrainian drone attack that hit primary units.,2026-04-05,"~320,000 b/d",Reuters,FALSE
+Russia,Tuapse Refinery,44.1,39.0833,Struck twice in one week; one fire burned for 42 hours following repeated drone strikes.,"April 16 & 19, 2026","~240,000 b/d",Reuters,FALSE
+Russia,Yaroslavl Refinery,57.5739,39.8653,Drone-linked fires damaged operational units.,2026-03-01,No info found,Instagram (News),FALSE
+USA,Valero Port Arthur,29.8972,-93.9317,Major explosion triggered evacuations and prolonged flaring; operations restricted.,Late March 2026,No info found,https://www.trtworld.com/article/d93ddad90806,TRUE

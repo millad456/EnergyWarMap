@@ -2,35 +2,18 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.log("DOM loaded, initializing map...");
 
-    // Create the map
-    var map = L.map('map').setView([39.8283, -98.5795], 4);
+    // Create the map with worldCopyJump for continuous scroll
+    var map = L.map('map', {
+        worldCopyJump: true
+    }).setView([20, 0], 2);
 
-    // Add the tile layer (the actual map imagery)
+    // Add the tile layer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
         subdomains: 'abcd',
-        maxZoom: 19
+        maxZoom: 19,
+        noWrap: false
     }).addTo(map);
-
-    // Example locations - COMMENTED OUT
-    /*
-    var locations = [
-        {
-            lat: 40.7128,
-            lng: -74.0060,
-            name: "New York City",
-            description: "📍 Times Square, Broadway shows, iconic skyline"
-        },
-        ...
-    ];
-
-    // Add markers to the map
-    for (var i = 0; i < locations.length; i++) {
-        var loc = locations[i];
-        var marker = L.marker([loc.lat, loc.lng]).addTo(map);
-        marker.bindPopup('<strong>' + loc.name + '</strong><br>' + loc.description);
-    }
-    */
 
     // Layer groups for filtering
     var layers = {
@@ -49,7 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
             oil: L.layerGroup().addTo(map),
             gas: L.layerGroup().addTo(map),
             other: L.layerGroup().addTo(map)
-        }
+        },
+        destroyed: L.layerGroup().addTo(map)
     };
 
     // Custom Legend Control
@@ -57,19 +41,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     legend.onAdd = function (map) {
         var div = L.DomUtil.create('div', 'legend');
-        div.innerHTML = '<h4>Infrastructure</h4>' +
-            '<div class="legend-item"><input type="checkbox" id="pipe-oil"> <span class="color-key" style="background: #e74c3c; opacity: 0.4"></span>Oil Pipelines</div>' +
-            '<div class="legend-item"><input type="checkbox" id="pipe-ngl"> <span class="color-key" style="background: #3498db; opacity: 0.4"></span>NGL Pipelines</div>' +
-            '<div class="legend-item"><input type="checkbox" id="pipe-lpg"> <span class="color-key" style="background: #f1c40f; opacity: 0.4"></span>LPG Pipelines</div>' +
-            '<div class="legend-item"><input type="checkbox" id="pipe-other"> <span class="color-key" style="background: #34495e; opacity: 0.4"></span>Other Pipelines</div>' +
-            '<h4>Projects (Large)</h4>' +
-            '<div class="legend-item"><input type="checkbox" id="proj-oil" checked> <span class="color-key circle" style="background: #c0392b"></span>Oil Projects</div>' +
-            '<div class="legend-item"><input type="checkbox" id="proj-gas" checked> <span class="color-key circle" style="background: #27ae60"></span>Gas Projects</div>' +
-            '<div class="legend-item"><input type="checkbox" id="proj-other" checked> <span class="color-key circle" style="background: #8e44ad"></span>Other/Mixed</div>' +
-            '<h4>Fields (Small)</h4>' +
-            '<div class="legend-item"><input type="checkbox" id="field-oil" checked> <span class="color-key circle" style="background: #c0392b; width: 8px; height: 8px; margin-left: 8px; margin-right: 18px;"></span>Oil Fields</div>' +
-            '<div class="legend-item"><input type="checkbox" id="field-gas" checked> <span class="color-key circle" style="background: #27ae60; width: 8px; height: 8px; margin-left: 8px; margin-right: 18px;"></span>Gas Fields</div>' +
-            '<div class="legend-item"><input type="checkbox" id="field-other" checked> <span class="color-key circle" style="background: #8e44ad; width: 8px; height: 8px; margin-left: 8px; margin-right: 18px;"></span>Other Fields</div>';
+        div.id = 'map-legend';
+        
+        div.innerHTML = 
+            '<div class="legend-header" id="legend-header">' +
+                '<span>Map Legend</span>' +
+                '<span class="toggle-icon">▾</span>' +
+            '</div>' +
+            '<div class="legend-content">' +
+                '<h4>Disruptions</h4>' +
+                '<div class="legend-item"><input type="checkbox" id="ext-destroyed" checked> <span class="color-key circle" style="background: #ff4d4d; border: 2px solid #000; width: 10px; height: 10px;"></span>Destroyed/Damaged</div>' +
+                '<h4>Infrastructure</h4>' +
+                '<div class="legend-item"><input type="checkbox" id="pipe-oil"> <span class="color-key" style="background: #e74c3c; opacity: 0.4"></span>Oil Pipelines</div>' +
+                '<div class="legend-item"><input type="checkbox" id="pipe-ngl"> <span class="color-key" style="background: #3498db; opacity: 0.4"></span>NGL Pipelines</div>' +
+                '<div class="legend-item"><input type="checkbox" id="pipe-lpg"> <span class="color-key" style="background: #f1c40f; opacity: 0.4"></span>LPG Pipelines</div>' +
+                '<div class="legend-item"><input type="checkbox" id="pipe-other"> <span class="color-key" style="background: #34495e; opacity: 0.4"></span>Other Pipelines</div>' +
+                '<h4>Projects (Large)</h4>' +
+                '<div class="legend-item"><input type="checkbox" id="proj-oil" checked> <span class="color-key circle" style="background: #c0392b"></span>Oil Projects</div>' +
+                '<div class="legend-item"><input type="checkbox" id="proj-gas" checked> <span class="color-key circle" style="background: #27ae60"></span>Gas Projects</div>' +
+                '<div class="legend-item"><input type="checkbox" id="proj-other" checked> <span class="color-key circle" style="background: #8e44ad"></span>Other/Mixed</div>' +
+                '<h4>Fields (Small)</h4>' +
+                '<div class="legend-item"><input type="checkbox" id="field-oil" checked> <span class="color-key circle" style="background: #c0392b; width: 8px; height: 8px; margin-left: 8px; margin-right: 18px;"></span>Oil Fields</div>' +
+                '<div class="legend-item"><input type="checkbox" id="field-gas" checked> <span class="color-key circle" style="background: #27ae60; width: 8px; height: 8px; margin-left: 8px; margin-right: 18px;"></span>Gas Fields</div>' +
+                '<div class="legend-item"><input type="checkbox" id="field-other" checked> <span class="color-key circle" style="background: #8e44ad; width: 8px; height: 8px; margin-left: 8px; margin-right: 18px;"></span>Other Fields</div>' +
+            '</div>';
         
         L.DomEvent.disableClickPropagation(div);
         return div;
@@ -77,8 +72,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     legend.addTo(map);
 
-    // Filter Logic
-    function setupToggles() {
+    // Filter & Toggle Logic
+    function setupControls() {
+        var header = document.getElementById('legend-header');
+        var legendDiv = document.getElementById('map-legend');
+        header.addEventListener('click', function() {
+            legendDiv.classList.toggle('collapsed');
+        });
+
         var toggleMap = {
             'pipe-oil': layers.pipelines.oil,
             'pipe-ngl': layers.pipelines.ngl,
@@ -89,7 +90,8 @@ document.addEventListener('DOMContentLoaded', function () {
             'proj-other': layers.projects.other,
             'field-oil': layers.fields.oil,
             'field-gas': layers.fields.gas,
-            'field-other': layers.fields.other
+            'field-other': layers.fields.other,
+            'ext-destroyed': layers.destroyed
         };
 
         Object.keys(toggleMap).forEach(function (id) {
@@ -105,6 +107,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    setupControls();
 
     // Load Pipeline Data
     fetch('./mapData/GEM-GOIT-Oil-NGL-Pipelines-2025-03.geojson')
@@ -139,8 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load Project-level Extraction Data
     Papa.parse('./mapData/Global-Oil-and-Gas-Extraction-Tracker-March-2026 Project-level main data.csv', {
-        download: true,
-        header: true,
+        download: true, header: true,
         complete: function (results) {
             results.data.forEach(function (row) {
                 var lat = parseFloat(row.Latitude);
@@ -149,33 +152,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     var fuel = (row['Fuel type'] || '').toLowerCase();
                     var color = fuel.includes('oil') ? '#c0392b' : (fuel.includes('gas') ? '#27ae60' : '#8e44ad');
                     var marker = L.circleMarker([lat, lng], {
-                        radius: 6,
-                        fillColor: color,
-                        color: "#fff",
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.8
+                        radius: 6, fillColor: color, color: "#fff",
+                        weight: 1, opacity: 1, fillOpacity: 0.8
                     });
-
                     var popupContent = '<strong>Project: ' + (row['Project Name'] || 'Unnamed') + '</strong><br>' +
                         'Type: ' + (row['Fuel type'] || 'N/A') + '<br>' +
                         'Status: ' + (row['Status'] || 'N/A');
                     if (row['Wiki URL (project)']) popupContent += '<br><a href="' + row['Wiki URL (project)'] + '" target="_blank">GEM Wiki</a>';
-                    
                     marker.bindPopup(popupContent);
                     if (fuel.includes('oil')) marker.addTo(layers.projects.oil);
                     else if (fuel.includes('gas')) marker.addTo(layers.projects.gas);
                     else marker.addTo(layers.projects.other);
                 }
             });
-            setupToggles();
         }
     });
 
     // Load Field-level Extraction Data
     Papa.parse('./mapData/Global-Oil-and-Gas-Extraction-Tracker-March-2026.xlsx - Field-level main data.csv', {
-        download: true,
-        header: true,
+        download: true, header: true,
         complete: function (results) {
             results.data.forEach(function (row) {
                 var lat = parseFloat(row.Latitude);
@@ -184,26 +179,48 @@ document.addEventListener('DOMContentLoaded', function () {
                     var fuel = (row['Fuel type'] || '').toLowerCase();
                     var color = fuel.includes('oil') ? '#c0392b' : (fuel.includes('gas') ? '#27ae60' : '#8e44ad');
                     var marker = L.circleMarker([lat, lng], {
-                        radius: 3.5,
-                        fillColor: color,
-                        color: "#fff",
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.6
+                        radius: 3.5, fillColor: color, color: "#fff",
+                        weight: 1, opacity: 1, fillOpacity: 0.6
                     });
-
                     var popupContent = '<strong>Field: ' + (row['Unit Name'] || 'Unnamed') + '</strong><br>' +
                         'Type: ' + (row['Fuel type'] || 'N/A') + '<br>' +
                         'Status: ' + (row['Status'] || 'N/A');
                     if (row['Wiki URL (field)']) popupContent += '<br><a href="' + row['Wiki URL (field)'] + '" target="_blank">GEM Wiki</a>';
-                    
                     marker.bindPopup(popupContent);
                     if (fuel.includes('oil')) marker.addTo(layers.fields.oil);
                     else if (fuel.includes('gas')) marker.addTo(layers.fields.gas);
                     else marker.addTo(layers.fields.other);
                 }
             });
-            setupToggles();
+        }
+    });
+
+    // Load Destroyed Data
+    Papa.parse('./mapData/DestroyedInfrastructureList.csv', {
+        download: true, header: true,
+        complete: function (results) {
+            results.data.forEach(function (row) {
+                var lat = parseFloat(row.Latitude);
+                var lng = parseFloat(row.Longitude);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    var marker = L.circleMarker([lat, lng], {
+                        radius: 10, fillColor: '#ff4d4d', color: '#000',
+                        weight: 2, opacity: 1, fillOpacity: 0.9
+                    });
+                    var popupContent = '<div class="destroyed-popup">' +
+                        '<strong>💥 ' + (row.Facility || 'Unknown Facility') + '</strong><br>' +
+                        '<em>' + (row.Country || '') + ' • ' + (row.Date || '') + '</em><br><hr>' +
+                        '<strong>Impact:</strong> ' + (row['Capacity Taken Out'] || 'Unknown') + '<br>' +
+                        '<strong>Details:</strong> ' + (row.Description || 'No description provided') + '<br>';
+                    if (row.Source && (row.Source.startsWith('http') || row.Source.includes('www.'))) {
+                        var url = row.Source.startsWith('http') ? row.Source : 'http://' + row.Source;
+                        popupContent += '<br><a href="' + url + '" target="_blank">View Evidence</a>';
+                    }
+                    popupContent += '</div>';
+                    marker.bindPopup(popupContent);
+                    marker.addTo(layers.destroyed);
+                }
+            });
         }
     });
 
