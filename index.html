@@ -4,32 +4,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Interactive Map Tracker</title>
+    <title>Energy War Map — Global Infrastructure Disruptions</title>
+    <meta name="description"
+        content="Interactive map tracking global energy infrastructure disruptions, attacks, and shutdowns alongside real-time commodity prices.">
 
-    <!-- Leaflet CSS + JS -->
+    <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- PapaParse (CSV) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-    <!-- Custom CSS - FIXED PATH -->
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <!-- Chart.js zoom plugin (requires hammer.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
     <div class="container">
+        <!-- ── HEADER ───────────────────────────────────────────────── -->
         <header class="header">
-            <h1>Energy War Map</h1>
-            <p>Interactive map| Click markers for details</p>
+            <div class="header-icon">&#9889;</div>
+            <div class="header-text">
+                <h1>Energy <span>War</span> Map</h1>
+                <p>Global oil &amp; gas infrastructure disruptions · Jan 2026 – present</p>
+            </div>
+            <div class="header-badges">
+                <span class="badge badge-live" id="badge-live">Live Data</span>
+                <span class="badge badge-warning" id="badge-count">0 Incidents</span>
+            </div>
         </header>
 
+        <!-- ── MAP ─────────────────────────────────────────────────── -->
         <div id="map" class="map"></div>
 
+        <!-- ── PRICE PANEL (top-right, inside map area) ────────────── -->
+        <div id="price-panel" class="">
+            <div class="price-panel-header" id="price-panel-header">
+                <div class="price-panel-title">
+                    <span class="price-panel-icon" aria-hidden="true">&#9654;</span>
+                    <span class="price-panel-label">Energy Prices</span>
+                </div>
+                <span class="price-panel-minimize" id="price-panel-toggle">&#x25b4;</span>
+            </div>
+            <div class="price-panel-body" id="price-panel-body">
+                <!-- Commodity tabs -->
+                <div class="commodity-tabs" id="commodity-tabs">
+                    <button class="commodity-tab active" data-commodity="wti">WTI</button>
+                    <button class="commodity-tab" data-commodity="brent">Brent</button>
+                    <button class="commodity-tab" data-commodity="henry">HH</button>
+                    <button class="commodity-tab" data-commodity="ttf">TTF</button>
+                </div>
+                <!-- Current price -->
+                <div class="price-summary">
+                    <div class="price-current" id="price-value">
+                        --<span class="price-unit" id="price-unit">$/bbl</span>
+                    </div>
+                    <div class="price-change">
+                        <span class="price-delta" id="price-delta">--</span>
+                        <span class="price-range-label">YTD change</span>
+                    </div>
+                </div>
+                <!-- Chart -->
+                <div class="chart-wrapper">
+                    <canvas id="price-chart"></canvas>
+                </div>
+                <div class="chart-dates">
+                    <span>Jan 6, 2026</span>
+                    <span>Apr 28, 2026</span>
+                </div>
+                <div class="chart-zoom-hint" id="chart-zoom-hint">
+                    Scroll to zoom · drag to pan · <button id="chart-reset-zoom">Reset</button>
+                    <span id="price-source-tag" class="price-source-tag stale"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── INCIDENT INFO CARD (bottom-centre) ──────────────────── -->
+        <div id="incident-card">
+            <div class="incident-card-header">
+                <span class="incident-card-icon" aria-hidden="true">&#9888;</span>
+                <div class="incident-card-title-block">
+                    <div class="incident-card-facility" id="ic-facility">—</div>
+                    <div class="incident-card-meta">
+                        <span class="incident-meta-tag"><span class="meta-label">Country:</span><span
+                                id="ic-country">—</span></span>
+                        <span class="incident-meta-tag"><span class="meta-label">Date:</span><span
+                                id="ic-date">—</span></span>
+                    </div>
+                </div>
+                <button class="incident-card-close" id="incident-card-close" title="Close">&times;</button>
+            </div>
+            <div class="incident-card-body">
+                <div class="incident-field">
+                    <span class="incident-field-label">Capacity Taken Out</span>
+                    <span class="incident-field-value highlight" id="ic-capacity">—</span>
+                </div>
+                <div class="incident-field">
+                    <span class="incident-field-label">Facility Type</span>
+                    <span class="incident-field-value" id="ic-type">—</span>
+                </div>
+                <div class="incident-field">
+                    <span class="incident-field-label">Status</span>
+                    <span class="incident-field-value" id="ic-status">Unconfirmed</span>
+                </div>
+                <div class="incident-field full-width">
+                    <span class="incident-field-label">Description</span>
+                    <span class="incident-field-value" id="ic-description">—</span>
+                </div>
+                <div class="incident-field full-width" id="ic-notes-row" style="display:none">
+                    <span class="incident-field-label">Notes</span>
+                    <span class="incident-field-value" id="ic-notes">—</span>
+                </div>
+            </div>
+            <div class="incident-card-footer">
+                <a href="#" id="ic-source-link" class="incident-source-link" target="_blank" rel="noopener">source</a>
+            </div>
+        </div>
+
+        <!-- ── FOOTER ───────────────────────────────────────────────── -->
         <footer class="footer">
-            <p>Data updates from live source • Click any marker to see information</p>
+            <span>Data: Global Energy Monitor · GEM-GOIT · Manual incident logs</span>
+            <div class="footer-right">
+                <span>Click any marker for details</span>
+                <span>·</span>
+                <span>Price data: indicative (2026 estimates)</span>
+            </div>
         </footer>
     </div>
 
-    <!-- Custom JS - FIXED PATH -->
+    <!-- Custom JS -->
     <script src="./script.js"></script>
 </body>
 

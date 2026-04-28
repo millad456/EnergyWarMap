@@ -1,33 +1,34 @@
-Country,Facility,Latitude,Longitude,Description,Date,Capacity Taken Out,Source,Confirmed? 
-Russia,Port of Ust-Luga,59.6917,28.4239,Multiple drone strikes triggered fires; destroyed at least one oil-loading berth.,"March 22–31, 2026","~700,000 b/d",Al Jazeera,FALSE
-Russia,Port of Primorsk,60.3667,28.6,Drone strikes caused fuel leaks and reservoir fires; shrapnel hit fuel reservoirs.,2026-03-29,"~40% of storage (~400,000 b/d)",TRT World,FALSE
-Russia,Kirishi Oil Refinery,59.4528,32.3275,Large-scale drone attack hit primary processing units (ELOU-AVT-2/6).,2026-03-26,"~350,000 b/d (Full Halt)",Reuters via Yahoo,FALSE
-USA,Etoile Oil Well,31.3857,-94.4361,Well site explosion triggered a massive fire; derrick collapsed.,2026-04-20,No info found,CBS 19,FALSE
-Australia,Geelong Oil Refinery,-38.0872,144.38,Attributed to technical failures amidst broader energy sector pressure.,2026-04-01,No info found,https://www.trtworld.com/article/d93ddad90806 ,TRUE
-India,Greenfield Refinery,25.9189,72.2353,Fire broke out at the new Pachpadra facility.,2026-04-01,No info found,Instagram (News Update),FALSE
-UAE,Ruwais Refinery,24.1167,52.7333,Multiple fires caused by falling drone debris; operations shut as precaution.,2026-04-05,"922,000 b/d",Wikipedia,FALSE
-Saudi Arabia,Ras Tanura,26.7867,50.1167,Drone debris caused fire at storage tanks; shut for precautionary measures.,2026-03-02,"550,000 b/d",Argus Media,FALSE
-Saudi Arabia,SAMREF Refinery,23.95,38.2167,Drone struck refinery; damage assessment underway with minimal initial impact.,2026-03-19,"~400,000 b/d",Upstream Online,FALSE
-Saudi Arabia,Satorp Refinery,27.05,49.5667,Damage to one of two processing trains prompted a precautionary shutdown.,"April 7–8, 2026","460,000 b/d",Argus Media,FALSE
-Saudi Arabia,Riyadh Refinery,24.5833,46.85,"Attacked directly, affecting exports of refined products.",2026-04-09,"120,000 b/d",Insurance Journal,FALSE
-Bahrain,Bapco Energies,26.1267,50.6067,Force majeure declared after drone strike set Al-Ma'ameer facility ablaze.,2026-03-09,"405,000 b/d",Market Minute,FALSE
-Bahrain,Gulf Petrochemicals,26.1333,50.6333,Operational units caught fire after drone attacks.,2026-04-05,No info found,Insurance Journal,FALSE
-Kuwait,KNPC & PIC,29.3759,47.9774,Multiple operational facilities targeted; fires and significant material damage.,2026-04-05,No info found,Kuwait News Agency,FALSE
-Kuwait,Mina Al-Ahmadi,29.0667,48.1333,Drone strike hit several operational units; second attack in weeks.,2026-04-03,"730,000 b/d",Instagram (InfactoWeaver),FALSE
-Iraq,Lanaz Refinery,36.1911,44.0092,Drone strike sparked a massive fire in fuel storage tanks.,2026-03-14,No info found,Instagram (News Update),FALSE
-Qatar,Ras Laffan LNG,25.9,51.55,Force majeure declared after missile attacks on production trains.,2026-03-02,17% of total capacity,Reuters via Facebook,FALSE
-Qatar,Shell Pearl GTL,25.9,51.55,"Sustained ""extensive damage"" due to missile attacks; repairs may take years.",2026-03-18,"140,000 b/d",BBC,FALSE
-UAE,Habshan Gas,23.6333,53.6,Falling debris from intercepted missiles caused fires and significant damage.,2026-04-03,No info found,Al Jazeera,FALSE
-Iran,South Pars,26.68,52.48,Israeli airstrike targeted facilities at the world's largest gas field.,2026-03-18,No info found,CNN via Instagram,FALSE
-Iran,Isfahan Gas Stn,32.6546,51.668,No info found,No info found,No info found,No info found,FALSE
-UAE,Shah Gas Field,22.95,53.95,No info found,2026-03-16,No info found,No info found,FALSE
-UAE,Das Island LNG,25.15,52.8667,Precautionary shutdowns across offshore UAE.,2026-03-01,No info found,Argus Media,FALSE
-Saudi Arabia,Ju'aymah LPG,26.7867,50.1167,No info found,2026-04-09,No info found,No info found,FALSE
-Saudi Arabia,East-West Pipeline,24.1167,38.3,Drone strike on a pumping station; flows disrupted.,2026-04-08,"700,000 b/d",Financial Times via Instagram,FALSE
-Iraq,Majnoon Oil Field,31.1167,47.6,Basra Oil production process shut or in process of shutting.,2026-03-01,No info found,Argus Media,FALSE
-Saudi Arabia,Manifa Facility,27.6,48.9667,Suspected targeting affecting domestic fuel needs.,2026-04-09,"300,000 b/d",Instagram (Intel),FALSE
-Saudi Arabia,Khurais Facility,25.0833,48.0333,No info found,No info found,"300,000 b/d",No info found,FALSE
-Russia,NORSI Refinery,56.1264,44.1736,Suspended operations following a Ukrainian drone attack that hit primary units.,2026-04-05,"~320,000 b/d",Reuters,FALSE
-Russia,Tuapse Refinery,44.1,39.0833,Struck twice in one week; one fire burned for 42 hours following repeated drone strikes.,"April 16 & 19, 2026","~240,000 b/d",Reuters,FALSE
-Russia,Yaroslavl Refinery,57.5739,39.8653,Drone-linked fires damaged operational units.,2026-03-01,No info found,Instagram (News),FALSE
-USA,Valero Port Arthur,29.8972,-93.9317,Major explosion triggered evacuations and prolonged flaring; operations restricted.,Late March 2026,No info found,https://www.trtworld.com/article/d93ddad90806,TRUE
+,,,,,,,,,,
+Country,Facility,Facility Type,Lat,Lon,Description,Date,Capacity,Source URL,Attack Happened,Notes
+Russia,Port of Ust-Luga,Oil,59.6917,28.4239,Multiple drone strikes triggered fires; destroyed at least one oil-loading berth.,"March 22–31, 2026","~700,000 b/d",https://www.bbc.com/news/articles/c9qdwpnwzwpo,TRUE,
+Russia,Port of Primorsk,Oil,60.3667,28.6,Drone strikes caused fuel leaks and reservoir fires; shrapnel hit fuel reservoirs.,2026-03-29,"~40% of storage (~400,000 b/d)",https://www.aljazeera.com/news/2026/4/5/drone-attacks-hit-russian-oil-infrastructure-leak-and-fires-reported,TRUE,
+Russia,Kirishi Oil Refinery,Oil,59.4528,32.3275,Large-scale drone attack hit primary processing units (ELOU-AVT-2/6).,2026-03-26,"~350,000 b/d (Full Halt)",https://www.cbc.ca/news/world/ukraine-drones-russia-oil-refinery-1.7633534,TRUE,
+Russia,NORSI Refinery,Oil,56.1264,44.1736,Suspended operations following a Ukrainian drone attack that hit primary units.,2026-04-05,"~320,000 b/d",https://www.aljazeera.com/news/2026/4/5/drone-attacks-hit-russian-oil-infrastructure-leak-and-fires-reported,TRUE,
+Russia,Tuapse Refinery,Oil,44.1,39.0833,Struck twice in one week; one fire burned for 42 hours.,"April 16 & 19, 2026","~240,000 b/d",https://www.themoscowtimes.com/2026/04/24/black-rain-toxic-air-and-bird-deaths-russian-black-sea-town-reels-from-refinery-strike-a92581,TRUE,
+Russia,Yaroslavl Refinery,Oil,57.5528,39.8097,Drone-linked fires damaged operational units.,2026-03-01,No info found,https://kyivindependent.com/fire-reported-at-yaroslavl-oil-refinery-as-ukrainian-drones-strike-several-russian-regions-target-occupied-crimea/,TRUE,
+USA,Etoile Oil Well,Oil,31.3857,-94.4361,Well site explosion triggered a massive fire; derrick collapsed.,2026-04-20,No info found,https://sundayguardianlive.com/world/texas-oil-well-explosion-blast-near-etoile-triggers-massive-fire-no-casualties-reported-as-residents-evacuated-in-nacogdoches-county-watch-the-viral-video-185527/,TRUE,
+USA,Valero Port Arthur,Oil,29.8972,-93.9317,Major explosion triggered evacuations and prolonged flaring; operations restricted.,Late March 2026,No info found,https://www.trtworld.com/article/d93ddad90806,TRUE,
+Australia,Geelong Oil Refinery,Oil,-38.0872,144.38,Attributed to technical failures amidst broader energy sector pressure.,2026-04-01,No info found,https://www.trtworld.com/article/d93ddad90806,TRUE,
+India,HPCL Rajasthan Refinery Limited (HRRL),Oil,25.9189,72.2353,Fire broke out at the new Pachpadra facility.,2026-04-01,No info found,https://indianexpress.com/article/business/hpcl-rajasthan-refinery-fire-pm-modi-inauguration-postponed-probe-team-10648652/,TRUE,
+UAE,Ruwais Refinery,Oil,24.1167,52.7333,Multiple fires caused by falling drone debris; operations shut as precaution.,2026-04-05,"922,000 b/d",https://internationalfireandsafetyjournal.com/iran-missile-interception/,TRUE,
+UAE,Das Island LNG,Gas ,25.15,52.8667,Precautionary shutdowns across offshore UAE.,2026-03-01,back online,https://investinglive.com/news/uae-resumes-operations-at-its-largest-gas-processing-facility-after-shutdown-last-week-20260323/,TRUE,
+UAE,Habshan Gas,Gas,23.6333,53.6,Falling debris from intercepted missiles caused fires and significant damage.,2026-04-03,0.173 bcm/d,https://www.bloomberg.com/news/articles/2026-04-03/abu-dhabi-halts-operations-at-main-gas-facility-after-attack,TRUE,
+UAE,Shah Gas Field,Gas,22.95,53.95,Drone attack caused suspension of operations.,2026-03-16,No info found,https://www.reuters.com/business/energy/operations-uaes-shah-gas-field-suspended-after-drone-attack-media-office-says-2026-03-16/,TRUE,
+Saudi Arabia,Ras Tanura,Oil,26.7867,50.1167,Drone debris caused fire at storage tanks; shut for precautionary measures.,2026-03-02,"550,000 b/d",https://www.aljazeera.com/news/2026/3/2/qatarenergy-worlds-largest-lng-firm-halts-production-after-iran-attacks,TRUE,
+Saudi Arabia,SAMREF Refinery,Oil,23.95,38.2167,Drone struck refinery; damage assessment underway with minimal initial impact.,2026-03-19,"~400,000 b/d",https://mezha.net/eng/bukvy/drone_struck_samref/,TRUE,
+Saudi Arabia,Satorp Refinery,Oil,27.05,49.5667,Damage to one of two processing trains prompted a precautionary shutdown.,"April 7–8, 2026","460,000 b/d",https://www.argusmedia.com/,TRUE,
+Saudi Arabia,Riyadh Refinery,Oil,24.3109,46.5227,"Attacked directly, affecting exports of refined products.",2026-04-09,"120,000 b/d",https://www.insurancejournal.com/,TRUE,
+Saudi Arabia,Ju'aymah LPG,Gas ,26.7904,50.007,Aramco halts Juaymah LPG exports after system damage. Mostly propane and butane production.,2026-02-26,No info found,https://www.agbi.com/oil-and-gas/2026/02/aramco-halts-juaymah-lpg-exports-after-system-damage/,TRUE,
+Saudi Arabia,East-West Pipeline (Pumping Station 1),Pipeline,24.3,44.3,Drone strike on a pumping station near Riyadh; flows disrupted.,2026-04-08,"700,000 b/d disrupted",https://www.cnbc.com/2026/04/09/iran-war-oil-saudi-arabia-east-west-pipeline.html,TRUE,Approximate coordinates
+Saudi Arabia,East-West Pipeline (Pumping Station 2),Pipeline,24.1167,38.2167,Drone strike on a pumping station near Yanbu; flows disrupted.,2026-04-08,"700,000 b/d disrupted",https://www.cnbc.com/2026/04/09/iran-war-oil-saudi-arabia-east-west-pipeline.html,TRUE,Approximate coordinates
+Saudi Arabia,Manifa Facility,Oil,27.6,48.9667,Suspected targeting affecting domestic fuel needs.,2026-04-09,"300,000 b/d",https://www.cnbc.com/2026/04/09/iran-war-oil-saudi-arabia-east-west-pipeline.html,TRUE,
+Bahrain,Bapco Energies,Oil,26.1267,50.6067,Force majeure declared after drone strike set Al-Ma'ameer facility ablaze.,2026-03-09,"405,000 b/d",https://www.timesofisrael.com/liveblog_entry/bahrain-says-fire-at-bapco-energies-refinery-after-iranian-missile-strike-contained-operations-continue/,TRUE,
+Bahrain,Gulf Petrochemicals,Gas/Petrochemical,26.1333,50.6333,Operational units caught fire after drone attacks.,2026-04-05,No info found,https://www.reuters.com/business/energy/bahrains-gulf-petrochemical-industries-says-fire-under-control-units-after-iran-2026-04-05/,TRUE,
+Kuwait,Mina Al-Ahmadi,Oil,29.0667,48.1333,Drone strike hit several operational units; second attack in weeks.,2026-04-03,"730,000 b/d",https://www.reuters.com/world/middle-east/drones-hit-kuwaits-mina-al-ahmadi-refinery-fires-reported-no-injuries-2026-04-03/,TRUE,
+Kuwait,KNPC & PIC (unspecified),Oil,29.3759,47.9774,Multiple operational facilities targeted; fires and significant material damage.,2026-04-05,No info found,https://kuwaittimes.com/article/41885/kuwait/kpc-reports-drone-attack-on-facilities-no-casualties/,TRUE,Coordinates are approximate for Kuwait City area
+Iraq,Majnoon Oil Field,Oil,31.1167,47.6,Basra Oil production process shut or in process of shutting.,2026-03-01,No info found,https://www.wsj.com/livecoverage/iran-war-us-israel-latest-news-2026/card/iraq-says-majnoon-oil-field-targeted-by-drone-strike-qd2TYUqgRMjP2ScD4ZZh,TRUE,
+Iraq,Lanaz Refinery,Oil,36.1911,44.0092,Drone strike sparked a massive fire in fuel storage tanks.,2026-03-14,No info found,https://www.jpost.com/middle-east/iran-news/article-889921,TRUE,Coordinates are approximate (near Erbil)
+Qatar,Ras Laffan LNG,Gas,25.9148,51.5741,Force majeure declared after missile attacks on production trains.,2026-03-02,17% of total capacity,https://www.reuters.com/business/energy/iran-attack-damage-wipes-out-17-qatars-lng-capacity-three-five-years-qatarenergy-2026-03-19/,TRUE,
+Qatar,Shell Pearl GTL,Gas,25.905,51.5054,"Sustained ""extensive damage"" due to missile attacks; repairs may take years.",2026-03-18,"140,000 b/d",https://www.reuters.com/business/energy/shells-pearl-gtl-facility-qatar-stops-production-after-attacks-2026-03-19/,TRUE,
+Iran,South Pars (North Dome),Gas,27.3208,52.3439,Israeli airstrike targeted facilities at the world's largest gas field.,2026-03-18,0.1 bcm/d,https://www.aljazeera.com/news/2026/3/19/iran-attacks-cut-17-of-qatars-lng-capacity-for-up-to-5-years-qatarenergy,TRUE,
+Iran,South Pars (SPGC site),Gas,27.4921,52.628,Israeli airstrike targeted facilities at the world's largest gas field.,2026-03-18,No info found,https://www.aljazeera.com/news/2026/3/19/iran-attacks-cut-17-of-qatars-lng-capacity-for-up-to-5-years-qatarenergy,TRUE,
