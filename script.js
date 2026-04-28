@@ -3,16 +3,16 @@
 // ═══════════════════════════════════════════════════════════════════
 
 /* ── 1. ALPHA VANTAGE — LIVE PRICE DATA ───────────────────────────── */
-const AV_KEY    = '11JJWBDWYIBP6J8M';
-const AV_BASE   = 'https://www.alphavantage.co/query';
+const AV_KEY = '11JJWBDWYIBP6J8M';
+const AV_BASE = 'https://www.alphavantage.co/query';
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 // Commodity config: avFn = null means not on AV free tier (TTF)
 const COMMODITY_META = {
-    wti:   { label: 'WTI Crude',   unit: '$/bbl',   color: '#ffb900', avFn: 'WTI'         },
-    brent: { label: 'Brent Crude', unit: '$/bbl',   color: '#f97316', avFn: 'BRENT'       },
-    henry: { label: 'Henry Hub',   unit: '$/MMBtu', color: '#22c55e', avFn: 'NATURAL_GAS' },
-    ttf:   { label: 'TTF / NBP',   unit: '\u20ac/MWh', color: '#3b82f6', avFn: null       }
+    wti: { label: 'WTI Crude', unit: '$/bbl', color: '#ffb900', avFn: 'WTI' },
+    brent: { label: 'Brent Crude', unit: '$/bbl', color: '#f97316', avFn: 'BRENT' },
+    henry: { label: 'Henry Hub', unit: '$/MMBtu', color: '#22c55e', avFn: 'NATURAL_GAS' },
+    ttf: { label: 'TTF / NBP', unit: '\u20ac/MWh', color: '#3b82f6', avFn: null }
 };
 
 // Fallback hardcoded values (used if API fails / rate-limited)
@@ -118,13 +118,13 @@ async function fetchCommodity(key) {
         const c = JSON.parse(localStorage.getItem(cacheKey) || 'null');
         if (c && (Date.now() - c.ts) < CACHE_TTL)
             return { labels: c.labels, values: c.values, source: 'cache' };
-    } catch (_) {}
+    } catch (_) { }
 
     try {
         const url = AV_BASE + '?function=' + meta.avFn + '&interval=daily&apikey=' + AV_KEY;
-        const res  = await fetch(url);
+        const res = await fetch(url);
         const json = await res.json();
-        const raw  = json.data;
+        const raw = json.data;
         if (!Array.isArray(raw)) throw new Error(json['Information'] || json['Note'] || 'bad response');
 
         const filtered = raw
@@ -145,7 +145,7 @@ async function fetchCommodity(key) {
 
 async function loadAllPrices() {
     setLoading(true);
-    const keys    = ['wti', 'brent', 'henry', 'ttf'];
+    const keys = ['wti', 'brent', 'henry', 'ttf'];
     const results = await Promise.all(keys.map(k => fetchCommodity(k)));
     keys.forEach((k, i) => { PRICE_DATA[k] = results[i]; });
     setLoading(false);
@@ -166,10 +166,10 @@ function setLoading(loading) {
 
 // Attack dates → indices resolved against loaded labels
 const ATTACK_DATES = [
-    '2026-02-26','2026-03-01','2026-03-02','2026-03-09','2026-03-14',
-    '2026-03-16','2026-03-18','2026-03-19','2026-03-22','2026-03-26',
-    '2026-03-29','2026-04-01','2026-04-03','2026-04-05','2026-04-07',
-    '2026-04-08','2026-04-09','2026-04-14','2026-04-16','2026-04-19',
+    '2026-02-26', '2026-03-01', '2026-03-02', '2026-03-09', '2026-03-14',
+    '2026-03-16', '2026-03-18', '2026-03-19', '2026-03-22', '2026-03-26',
+    '2026-03-29', '2026-04-01', '2026-04-03', '2026-04-05', '2026-04-07',
+    '2026-04-08', '2026-04-09', '2026-04-14', '2026-04-16', '2026-04-19',
     '2026-04-20'
 ];
 let attackIndices = [];
@@ -231,12 +231,12 @@ function buildPriceChart(commodity) {
     // Source badge
     const srcTag = document.getElementById('price-source-tag');
     if (srcTag) {
-        const txt = source === 'live'      ? 'Live • Alpha Vantage'
-                  : source === 'cache'     ? 'Cached • Alpha Vantage'
-                  : source === 'fallback'  ? 'API unavailable • indicative'
-                  :                          'Indicative data';
+        const txt = source === 'live' ? 'Live • Alpha Vantage'
+            : source === 'cache' ? 'Cached • Alpha Vantage'
+                : source === 'fallback' ? 'API unavailable • indicative'
+                    : 'Indicative data';
         srcTag.textContent = txt;
-        srcTag.className   = 'price-source-tag' + (source === 'live' || source === 'cache' ? ' live' : ' stale');
+        srcTag.className = 'price-source-tag' + (source === 'live' || source === 'cache' ? ' live' : ' stale');
     }
 
     const ctx = document.getElementById('price-chart').getContext('2d');
