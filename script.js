@@ -805,19 +805,21 @@ class TimelineController {
                     icon,
                     title: group.rows.length + ' incident(s)'
                 });
-                // Capture rows for this specific marker (avoid closure bug)
-                const rowsForMarker = group.rows;
+                // Store rows directly on the marker object so click always gets latest data
+                marker._incidentRows = group.rows;
                 marker.on('click', function () {
-                    showIncidentCard(rowsForMarker);
+                    showIncidentCard(this._incidentRows);
                 });
                 this.layer.addLayer(marker);
                 this.markers.set(key, { marker, rows: group.rows });
             } else {
-                // Update icon if count or opacity changed
+                const marker = markerData.marker;
+                // Update stored rows directly on the marker object
+                marker._incidentRows = group.rows;
                 const oldCount = markerData.rows.length;
                 if (oldCount !== count || Math.abs(markerData._lastOpacity - opacity) > 0.01) {
                     const icon = makeIncidentIcon(group.type, count, opacity);
-                    markerData.marker.setIcon(icon);
+                    marker.setIcon(icon);
                 }
                 markerData.rows = group.rows;
                 markerData._lastOpacity = opacity;
