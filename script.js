@@ -805,8 +805,10 @@ class TimelineController {
                     icon,
                     title: group.rows.length + ' incident(s)'
                 });
+                // Capture rows for this specific marker (avoid closure bug)
+                const rowsForMarker = group.rows;
                 marker.on('click', function () {
-                    showIncidentCard(group.rows);
+                    showIncidentCard(rowsForMarker);
                 });
                 this.layer.addLayer(marker);
                 this.markers.set(key, { marker, rows: group.rows });
