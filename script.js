@@ -170,7 +170,9 @@ const ATTACK_DATES = [
     '2026-03-16', '2026-03-18', '2026-03-19', '2026-03-22', '2026-03-26',
     '2026-03-29', '2026-04-01', '2026-04-03', '2026-04-05', '2026-04-07',
     '2026-04-08', '2026-04-09', '2026-04-14', '2026-04-16', '2026-04-19',
-    '2026-04-20'
+    '2026-04-20', '2026-04-25', '2026-04-28',
+    '2026-06-10', '2026-06-16', '2026-06-18', '2026-06-20', '2026-06-21',
+    '2026-06-25', '2026-06-26', '2026-06-27', '2026-06-28'
 ];
 let attackIndices = [];
 
@@ -392,7 +394,10 @@ function initPricePanel() {
 const incidentCard = document.getElementById('incident-card');
 const icClose = document.getElementById('incident-card-close');
 
-function showIncidentCard(row) {
+let currentIncidentRows = [];
+let currentIncidentIndex = 0;
+
+function updateIncidentCardPage(row, index, total) {
     document.getElementById('ic-facility').textContent = row.Facility || 'Unknown Facility';
     document.getElementById('ic-country').textContent = row.Country || '—';
     document.getElementById('ic-date').textContent = row.Date || '—';
@@ -410,11 +415,11 @@ function showIncidentCard(row) {
         notesEl.parentElement.style.display = 'none';
     }
 
-    // Status (no confirmed badge — just label)
+    // Status
     const confirmed = (row['Attack Happened'] || '').trim().toUpperCase() === 'TRUE';
     document.getElementById('ic-status').textContent = confirmed ? 'Confirmed' : 'Unconfirmed';
 
-    // Source: plain URL text
+    // Source URL
     const srcLink = document.getElementById('ic-source-link');
     const src = (row['Source URL'] || '').trim();
     if (src && src.startsWith('http')) {
@@ -425,11 +430,47 @@ function showIncidentCard(row) {
         srcLink.style.display = 'none';
     }
 
+    // Pagination
+    const pagDiv = document.getElementById('ic-pagination');
+    const pagInfo = document.getElementById('ic-pag-info');
+    if (total > 1) {
+        pagDiv.style.display = 'flex';
+        pagInfo.textContent = (index + 1) + '/' + total;
+        document.getElementById('ic-prev').disabled = (index === 0);
+        document.getElementById('ic-next').disabled = (index === total - 1);
+    } else {
+        pagDiv.style.display = 'none';
+    }
+}
+
+function showIncidentCard(rows) {
+    // Convert single row to array if needed
+    if (!Array.isArray(rows)) rows = [rows];
+    currentIncidentRows = rows;
+    currentIncidentIndex = 0;
+    updateIncidentCardPage(rows[0], 0, rows.length);
+    incidentCard.classList.add('visible');
+}
+
+function showIncidentCardIndex(index) {
+    if (!currentIncidentRows.length) return;
+    currentIncidentIndex = index;
+    updateIncidentCardPage(currentIncidentRows[index], index, currentIncidentRows.length);
     incidentCard.classList.add('visible');
 }
 
 icClose.addEventListener('click', () => {
     incidentCard.classList.remove('visible');
+});
+
+// Pagination button handlers
+document.getElementById('ic-prev').addEventListener('click', function (e) {
+    e.preventDefault();
+    if (currentIncidentIndex > 0) showIncidentCardIndex(currentIncidentIndex - 1);
+});
+document.getElementById('ic-next').addEventListener('click', function (e) {
+    e.preventDefault();
+    if (currentIncidentIndex < currentIncidentRows.length - 1) showIncidentCardIndex(currentIncidentIndex + 1);
 });
 
 /* ── 4. ICON + MARKER HELPERS ─────────────────────────────────────── */
@@ -454,12 +495,13 @@ function getMarkerConfig(facilityType) {
 }
 
 // Build a custom DivIcon — coloured circle with icon inside + glow pulse
-function makeIncidentIcon(facilityType) {
+// count: optional number > 1 shows a strike-count badge on the icon
+function makeIncidentIcon(facilityType, count) {
     const cfg = getMarkerConfig(facilityType);
     const size = 36;
-    // Uniform orange for all attack markers
     const dotColor = '#f97316';
     const glowColor = '249,115,22';
+    const multiStrike = (typeof count === 'number' && count > 1);
 
     const html = `
         <div class="incident-marker" style="
@@ -479,6 +521,7 @@ function makeIncidentIcon(facilityType) {
                 pointer-events:none;
                 display:block;
             " />
+            ${multiStrike ? '<span class="marker-count-badge">' + count + '</span>' : ''}
         </div>`;
 
     return L.divIcon({
@@ -504,11 +547,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Stadia Alidade dark — renders place names in both the local script
-    // and Latin/English equivalents (e.g. Москва / Moscow, رياض / Riyadh).
-    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        subdomains: 'abcd',
+    // CartoDB Dark Matter — free tile layer, no API key needed.
+    L.tileLayer('https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 20,
     }).addTo(map);
 
@@ -713,26 +754,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 return row.Facility && row.Facility.trim() !== '' && row.Facility !== 'Facility';
             });
 
+            // Group rows by lat/lon (rounded to 3 decimals) so
+            // multiple strikes at the same facility share one marker.
+            var groups = {};
             rows.forEach(function (row) {
-                // Use the new Lat / Lon column names
                 var lat = parseFloat(row.Lat);
                 var lng = parseFloat(row.Lon);
                 if (isNaN(lat) || isNaN(lng)) return;
 
-                incidentCount++;
+                var key = lat.toFixed(3) + ',' + lng.toFixed(3);
+                if (!groups[key]) groups[key] = { lat: lat, lng: lng, rows: [] };
+                groups[key].rows.push(row);
+            });
 
-                var facilityType = (row['Facility Type'] || 'Oil').trim();
-                var icon = makeIncidentIcon(facilityType);
+            var uniqueLocationCount = 0;
 
-                var marker = L.marker([lat, lng], { icon, title: row.Facility });
+            Object.values(groups).forEach(function (group) {
+                var firstRow = group.rows[0];
+                var facilityType = (firstRow['Facility Type'] || 'Oil').trim();
+                var strikeCount = group.rows.length;
+                var icon = makeIncidentIcon(facilityType, strikeCount);
 
-                // Click → custom card (no default popup)
+                var marker = L.marker([group.lat, group.lng], { icon, title: firstRow.Facility });
+
+                // Click → show all strikes at this location with pagination
                 marker.on('click', function (e) {
                     L.DomEvent.stopPropagation(e);
-                    showIncidentCard(row);
+                    showIncidentCard(group.rows);
                 });
 
                 marker.addTo(layers.destroyed);
+
+                incidentCount += strikeCount;
+                uniqueLocationCount++;
             });
 
             document.getElementById('badge-count').textContent =

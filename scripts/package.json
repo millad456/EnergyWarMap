@@ -1,0 +1,11 @@
+{
+  "name": "energy-war-map-updater",
+  "version": "1.0.0",
+  "description": "Update scripts for EnergyWarMap incident dataset",
+  "type": "module",
+  "scripts": {
+    "fetch": "node fetch-suggestions.js",
+    "add": "node add-incidents.js"
+  },
+  "dependencies": {}
+}
