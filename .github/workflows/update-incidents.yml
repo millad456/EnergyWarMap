@@ -1,0 +1,65 @@
+name: Update Incidents (Daily)
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  fetch-incidents:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r scripts/requirements.txt
+
+      - name: Run incident fetcher
+        env:
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL || 'deepseek-chat' }}
+          LOOKBACK_DAYS: 2
+        run: |
+          python scripts/fetch_incidents.py
+
+      - name: Read last run report
+        id: report
+        run: |
+          if [ -f scripts/last_run_report.json ]; then
+            cat scripts/last_run_report.json
+            echo "summary=$(cat scripts/last_run_report.json)" >> $GITHUB_OUTPUT
+          else
+            echo '{"incidents_appended": 0}' > scripts/last_run_report.json
+          fi
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [[ -z $(git status --porcelain) ]]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "EnergyWarMap Bot"
+          git config user.email "bot@energywarmap.local"
+          git add mapData/DestroyedInfrastructureList.csv scripts/last_run_report.json
+          INCIDENTS=$(python -c "import json; r=json.load(open('scripts/last_run_report.json')); print(r.get('incidents_appended', 0))")
+          git commit -m "auto: add $INCIDENTS new incident(s) [skip ci]"
+          git push

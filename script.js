@@ -138,7 +138,7 @@ async function fetchCommodity(key) {
         console.log('[AV] ' + key + ' live: ' + values.length + ' points');
         return { labels, values, source: 'live' };
     } catch (err) {
-        console.warn('[AV] ' + key + ' failed (' + err.message + ') — fallback');
+        console.warn('[AV] ' + key + ' failed (' + err.message + ') - fallback');
         return { ...FALLBACK[key], source: 'fallback' };
     }
 }
@@ -358,7 +358,6 @@ function initPricePanel() {
     const header = document.getElementById('price-panel-header');
     const toggle = document.getElementById('price-panel-toggle');
     const tabs = document.getElementById('commodity-tabs');
-    let loaded = true; // since we load it immediately
 
     // Load data immediately on startup
     loadAllPrices();
@@ -444,7 +443,6 @@ function updateIncidentCardPage(row, index, total) {
 }
 
 function showIncidentCard(rows) {
-    // Convert single row to array if needed
     if (!Array.isArray(rows)) rows = [rows];
     currentIncidentRows = rows;
     currentIncidentIndex = 0;
@@ -496,7 +494,9 @@ function getMarkerConfig(facilityType) {
 
 // Build a custom DivIcon — coloured circle with icon inside + glow pulse
 // count: optional number > 1 shows a strike-count badge on the icon
-function makeIncidentIcon(facilityType, count) {
+// opacity: 0..1 (default 1), used for window-mode fading
+function makeIncidentIcon(facilityType, count, opacity) {
+    if (opacity === undefined || opacity === null) opacity = 1;
     const cfg = getMarkerConfig(facilityType);
     const size = 36;
     const dotColor = '#f97316';
@@ -508,11 +508,12 @@ function makeIncidentIcon(facilityType, count) {
             width:${size}px; height:${size}px;
             background:${dotColor};
             border-radius:50%;
-            border: 2px solid rgba(255,255,255,0.35);
+            border: 2px solid rgba(255,255,255,${0.25 + 0.1 * opacity});
             display:flex; align-items:center; justify-content:center;
             position:relative;
-            box-shadow: 0 0 0 0 rgba(${glowColor}, 0.7);
-            animation: marker-glow-Orange 2s ease-in-out infinite;
+            box-shadow: 0 0 0 0 rgba(${glowColor}, ${0.3 + 0.4 * opacity});
+            animation: marker-glow-Orange ${2.5 - 0.5 * opacity}s ease-in-out infinite;
+            opacity: ${opacity};
         ">
             <img src="${cfg.icon}" style="
                 width:${size * 0.58}px; height:${size * 0.58}px;
@@ -532,6 +533,302 @@ function makeIncidentIcon(facilityType, count) {
         popupAnchor: [0, -size / 2]
     });
 }
+
+/* ── 6. TIMELINE CONTROLLER ───────────────────────────────────────── */
+
+/**
+ * Parse a messy incident date string into a usable Date object.
+ */
+function parseIncidentDate(str) {
+    if (!str || typeof str !== 'string') return null;
+    const s = str.trim();
+    if (!s) return null;
+
+    // ISO date: YYYY-MM-DD
+    {
+        const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    }
+
+    // "Month DD–DD, YYYY" or "Month DD-DD, YYYY" — use the first day
+    {
+        const m = s.match(/^([A-Za-z]+)\s+(\d{1,2})\s*[–-]\s*\d{1,2},?\s*(\d{4})/);
+        if (m) return new Date(+m[3], monthIndex(m[1]), +m[2]);
+    }
+
+    // "Month DD, YYYY" or "Month DD YYYY"
+    {
+        const m = s.match(/^([A-Za-z]+)\s+(\d{1,2}),?\s*(\d{4})/);
+        if (m) return new Date(+m[3], monthIndex(m[1]), +m[2]);
+    }
+
+    // "Late / Early / Mid Month YYYY"
+    {
+        const m = s.match(/^(Late|Early|Mid)\s+([A-Za-z]+)\s+(\d{4})/i);
+        if (m) {
+            const day = m[1].toLowerCase() === 'early' ? 5 : m[1].toLowerCase() === 'mid' ? 15 : 25;
+            return new Date(+m[3], monthIndex(m[2]), day);
+        }
+    }
+
+    // "Month YYYY" — use 15th
+    {
+        const m = s.match(/^([A-Za-z]+)\s+(\d{4})$/);
+        if (m) return new Date(+m[2], monthIndex(m[1]), 15);
+    }
+
+    return null;
+}
+
+function monthIndex(name) {
+    const months = {
+        jan:0, feb:1, mar:2, apr:3, may:4, jun:5,
+        jul:6, aug:7, sep:8, oct:9, nov:10, dec:11
+    };
+    return months[name.toLowerCase().slice(0, 3)] ?? 0;
+}
+
+function fmtDateShort(d) {
+    if (!d || isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
+ * TimelineController — manages the date slider, playback, and marker visibility.
+ *
+ * Incidents are stored flat: one per CSV row (each with its own date).
+ * At render time, incidents at the same lat/lng are grouped into a single stacked marker.
+ */
+class TimelineController {
+    constructor(map, destroyedLayer) {
+        this.map = map;
+        this.layer = destroyedLayer;
+        this.incidents = [];           // [{ facility, lat, lng, type, date: Date, row: {csv row} }]
+        this.markers = new Map();      // "lat,lng" key -> L.marker with pixel-offset stacking
+
+        this.dateMin = null;
+        this.dateMax = null;
+        this.currentDate = null;
+        this.totalDays = 1;
+
+        this.isPlaying = false;
+        this.mode = 'cumulative';
+        this.windowDays = 7;
+
+        this.animationId = null;
+        this.lastFrame = 0;
+
+        this._ready = false;
+    }
+
+    /** Load parsed incidents. Called once after CSV parse. */
+    setIncidents(incidents) {
+        this.incidents = incidents;
+
+        // Compute date range across all incidents
+        let allDates = [];
+        for (const inc of incidents) {
+            if (inc.date && !isNaN(inc.date.getTime())) allDates.push(inc.date);
+        }
+        if (allDates.length === 0) {
+            console.warn('[Timeline] No parseable dates found.');
+            return;
+        }
+
+        allDates.sort((a, b) => a - b);
+        this.dateMin = new Date('2026-01-01');
+        this.dateMax = new Date(); // today
+        this.totalDays = Math.max(1, Math.ceil((this.dateMax - this.dateMin) / (1000 * 60 * 60 * 24)));
+        this.currentDate = new Date(this.dateMax);
+        this._ready = true;
+
+        console.log('[Timeline] ' + incidents.length + ' incidents, range ' + fmtDateShort(this.dateMin) + ' → ' + fmtDateShort(this.dateMax));
+
+        this._updateSliderBounds();
+        this._syncSliderToDate();
+        this._updateDateLabel();
+        this._buildTicks();
+        this._renderMarkers();
+    }
+
+    setDate(date) {
+        if (!date || !this._ready) return;
+        if (this.dateMin && date < this.dateMin) date = new Date(this.dateMin);
+        if (this.dateMax && date > this.dateMax) date = new Date(this.dateMax);
+        this.currentDate = date;
+        this._syncSliderToDate();
+        this._updateDateLabel();
+        this._renderMarkers();
+    }
+
+    setMode(mode) {
+        this.mode = mode;
+        if (mode === 'window' && this.incidents.length) {
+            // Jump to the most recent incident date so the window shows something
+            let latest = null;
+            for (const inc of this.incidents) {
+                if (inc.date && (!latest || inc.date > latest)) latest = inc.date;
+            }
+            if (latest) this.setDate(new Date(latest));
+        } else {
+            this._renderMarkers();
+        }
+    }
+    setWindowDays(days) { this.windowDays = parseInt(days, 10) || 2; if (this.mode === 'window') this._renderMarkers(); }
+
+    _updateSliderBounds() {
+        const slider = document.getElementById('tl-slider');
+        if (!slider) return;
+        slider.max = String(this.totalDays);
+        slider.min = '0';
+        slider.step = '0.5';
+    }
+
+    _syncSliderToDate() {
+        const slider = document.getElementById('tl-slider');
+        if (!slider || !this.dateMin || !this.currentDate) return;
+        const days = (this.currentDate - this.dateMin) / (1000 * 60 * 60 * 24);
+        slider.value = String(Math.max(0, Math.min(this.totalDays, days)));
+    }
+
+    _updateDateLabel() {
+        const el = document.getElementById('tl-date');
+        if (el && this.currentDate) {
+            el.textContent = fmtDateShort(this.currentDate);
+        }
+    }
+
+    _buildTicks() {
+        const container = document.getElementById('tl-ticks');
+        if (!container || !this.dateMin || !this.incidents.length) return;
+
+        const range = this.dateMax - this.dateMin;
+        const seen = new Set();
+        const positions = [];
+
+        for (const inc of this.incidents) {
+            const d = inc.date;
+            if (!d || isNaN(d.getTime())) continue;
+            const key = d.toISOString().slice(0, 10);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            const pct = Math.max(0, Math.min(100, ((d - this.dateMin) / range) * 100));
+            positions.push({ pct, date: d });
+        }
+
+        container.innerHTML = '';
+        for (const pos of positions) {
+            const tick = document.createElement('div');
+            tick.className = 'tl-tick';
+            tick.style.left = pos.pct + '%';
+            tick.title = fmtDateShort(pos.date);
+            container.appendChild(tick);
+        }
+        this._tickPositions = positions;
+    }
+
+    _renderMarkers() {
+        if (!this._ready || !this.currentDate) return;
+
+        const currentMs = this.currentDate.getTime();
+        const dayMs = 1000 * 60 * 60 * 24;
+
+        // Group visible incidents by location key "lat,lng"
+        // Each location group has { lat, lng, opacity, rows: [csv rows] }
+        const locationGroups = new Map(); // "lat,lng" -> { lat, lng, type, opacity, rows }
+
+        for (const inc of this.incidents) {
+            const incidentMs = inc.date ? inc.date.getTime() : NaN;
+            if (isNaN(incidentMs)) continue;
+
+            let show = false;
+            let opacity = 1;
+
+            if (this.mode === 'cumulative') {
+                show = incidentMs <= currentMs;
+            } else {
+                const windowMs = this.windowDays * dayMs;
+                const age = currentMs - incidentMs;
+                if (age >= 0 && age <= windowMs) {
+                    show = true;
+                    const half = windowMs / 2;
+                    if (age > half) {
+                        opacity = 1 - ((age - half) / half) * 0.5;
+                    }
+                }
+            }
+
+            if (!show) continue;
+
+            const key = inc.lat.toFixed(4) + ',' + inc.lng.toFixed(4);
+            if (!locationGroups.has(key)) {
+                locationGroups.set(key, {
+                    lat: inc.lat,
+                    lng: inc.lng,
+                    type: inc.type,
+                    opacity: opacity,
+                    rows: []
+                });
+            }
+            const group = locationGroups.get(key);
+            group.rows.push(inc.row);
+            // Use the minimum opacity across grouped incidents
+            group.opacity = Math.min(group.opacity, opacity);
+        }
+
+        // Remove markers for locations no longer visible
+        for (const [key, markerData] of this.markers) {
+            if (!locationGroups.has(key)) {
+                this.layer.removeLayer(markerData.marker);
+                this.markers.delete(key);
+            }
+        }
+
+        // Add or update visible markers
+        for (const [key, group] of locationGroups) {
+            let markerData = this.markers.get(key);
+            const count = group.rows.length;
+            const opacity = group.opacity;
+
+            if (!markerData) {
+                const facilityType = group.type;
+                const icon = makeIncidentIcon(facilityType, count, opacity);
+                const marker = L.marker([group.lat, group.lng], {
+                    icon,
+                    title: group.rows.length + ' incident(s)'
+                });
+                marker.on('click', function () {
+                    showIncidentCard(group.rows);
+                });
+                this.layer.addLayer(marker);
+                this.markers.set(key, { marker, rows: group.rows });
+            } else {
+                // Update icon if count or opacity changed
+                const oldCount = markerData.rows.length;
+                if (oldCount !== count || Math.abs(markerData._lastOpacity - opacity) > 0.01) {
+                    const icon = makeIncidentIcon(group.type, count, opacity);
+                    markerData.marker.setIcon(icon);
+                }
+                markerData.rows = group.rows;
+                markerData._lastOpacity = opacity;
+            }
+        }
+
+        this._updateActiveTicks();
+    }
+
+    _updateActiveTicks() {
+        if (!this._tickPositions || !this.currentDate) return;
+        const container = document.getElementById('tl-ticks');
+        if (!container) return;
+        const currentMs = this.currentDate.getTime();
+        const ticks = container.querySelectorAll('.tl-tick');
+        this._tickPositions.forEach((pos, i) => {
+            if (ticks[i]) ticks[i].classList.toggle('active', pos.date.getTime() <= currentMs);
+        });
+    }
+}
+
 
 /* ── 5. MAP INITIALISATION ────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
@@ -637,6 +934,16 @@ document.addEventListener('DOMContentLoaded', function () {
             cb.addEventListener('change', function () {
                 this.checked ? map.addLayer(toggleMap[id]) : map.removeLayer(toggleMap[id]);
             });
+            // Clicking the entire legend item toggles the checkbox
+            var item = cb.closest('.legend-item');
+            if (item) {
+                item.addEventListener('click', function (e) {
+                    if (e.target === cb || e.target.tagName === 'INPUT') return;
+                    cb.checked = !cb.checked;
+                    var event = new Event('change');
+                    cb.dispatchEvent(event);
+                });
+            }
         });
     }
     setupControls();
@@ -671,7 +978,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         })
-        .catch(() => console.warn('Pipeline GeoJSON not found – skipping.'));
+        .catch(function(err) { console.warn('Pipeline GeoJSON not found - skipping.'); });
 
     /* ── PROJECT EXTRACTION CSV ──────────────────────────────────── */
     Papa.parse('./mapData/Global-Oil-and-Gas-Extraction-Tracker-March-2026 Project-level main data.csv', {
@@ -726,24 +1033,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     /* ── DESTROYED INFRASTRUCTURE CSV ───────────────────────────── */
-    // New schema: Country, Facility, Facility Type, Lat, Lon,
-    //             Description, Date, Capacity, Source URL,
-    //             Attack Happened, Notes
-    // Row 0 in the CSV is an empty header row — Papa skips it when
-    // header:true is used and we skipEmptyLines.
-    var incidentCount = 0;
+    var timelineCtrl = new TimelineController(map, layers.destroyed);
 
     Papa.parse('./mapData/DestroyedInfrastructureList.csv', {
         download: true,
         header: true,
         skipEmptyLines: true,
-        // The CSV starts with a junk row of bare commas (,,,,,,,,,).
-        // PapaParse reads the FIRST non-whitespace line as the header,
-        // so that junk row becomes the header and the real column names
-        // end up as data. Strip it here before parsing begins.
         beforeFirstChunk: function (chunk) {
             var lines = chunk.split('\n');
-            // Remove lines that contain no real text (only commas/spaces)
             while (lines.length && lines[0].replace(/[,\s]/g, '') === '') {
                 lines.shift();
             }
@@ -754,44 +1051,64 @@ document.addEventListener('DOMContentLoaded', function () {
                 return row.Facility && row.Facility.trim() !== '' && row.Facility !== 'Facility';
             });
 
-            // Group rows by lat/lon (rounded to 3 decimals) so
-            // multiple strikes at the same facility share one marker.
-            var groups = {};
+            // Flatten: each CSV row becomes its own incident with its own date
+            var parsedIncidents = [];
+
             rows.forEach(function (row) {
                 var lat = parseFloat(row.Lat);
                 var lng = parseFloat(row.Lon);
                 if (isNaN(lat) || isNaN(lng)) return;
 
-                var key = lat.toFixed(3) + ',' + lng.toFixed(3);
-                if (!groups[key]) groups[key] = { lat: lat, lng: lng, rows: [] };
-                groups[key].rows.push(row);
-            });
+                var facilityType = (row['Facility Type'] || 'Oil').trim();
+                var date = parseIncidentDate(row.Date);
+                if (!date || isNaN(date.getTime())) {
+                    date = new Date('2026-01-01');
+                }
 
-            var uniqueLocationCount = 0;
-
-            Object.values(groups).forEach(function (group) {
-                var firstRow = group.rows[0];
-                var facilityType = (firstRow['Facility Type'] || 'Oil').trim();
-                var strikeCount = group.rows.length;
-                var icon = makeIncidentIcon(facilityType, strikeCount);
-
-                var marker = L.marker([group.lat, group.lng], { icon, title: firstRow.Facility });
-
-                // Click → show all strikes at this location with pagination
-                marker.on('click', function (e) {
-                    L.DomEvent.stopPropagation(e);
-                    showIncidentCard(group.rows);
+                parsedIncidents.push({
+                    facility: row.Facility || 'Unknown',
+                    lat: lat,
+                    lng: lng,
+                    type: facilityType,
+                    date: date,
+                    row: row      // store the raw CSV row for the info card
                 });
-
-                marker.addTo(layers.destroyed);
-
-                incidentCount += strikeCount;
-                uniqueLocationCount++;
             });
 
             document.getElementById('badge-count').textContent =
-                incidentCount + ' Incident' + (incidentCount !== 1 ? 's' : '');
+                parsedIncidents.length + ' Incident' + (parsedIncidents.length !== 1 ? 's' : '');
+
+            // Feed incidents to the timeline controller
+            timelineCtrl.setIncidents(parsedIncidents);
         }
+    });
+
+    /* ── TIMELINE CONTROLS ────────────────────────────────────────── */
+    // Slider
+    var slider = document.getElementById('tl-slider');
+    slider.addEventListener('input', function () {
+        var days = parseFloat(slider.value);
+        if (timelineCtrl.dateMin) {
+            var d = new Date(timelineCtrl.dateMin);
+            d.setDate(d.getDate() + days);
+            timelineCtrl.setDate(d);
+        }
+    });
+
+    // Mode toggle
+    document.getElementById('tl-mode-group').addEventListener('click', function (e) {
+        var btn = e.target.closest('.tl-mode');
+        if (!btn) return;
+        document.querySelectorAll('.tl-mode').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var mode = btn.dataset.mode;
+        document.getElementById('tl-window').style.display = mode === 'window' ? 'inline-block' : 'none';
+        timelineCtrl.setMode(mode);
+    });
+
+    // Window size
+    document.getElementById('tl-window').addEventListener('change', function (e) {
+        timelineCtrl.setWindowDays(e.target.value);
     });
 
     L.control.scale({ metric: true, imperial: true, position: 'bottomright' }).addTo(map);

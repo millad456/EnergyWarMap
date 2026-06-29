@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Energy War Map — Global Infrastructure Disruptions</title>
     <meta name="description"
         content="Interactive map tracking global energy infrastructure disruptions, attacks, and shutdowns alongside real-time commodity prices.">
@@ -22,7 +22,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./style.css?v=2" />
 </head>
 
 <body>
@@ -30,7 +30,7 @@
         <!-- ── HEADER ───────────────────────────────────────────────── -->
         <header class="header">
             <div class="header-text">
-                <h1>Millad's Energy <span>War</span> Map</h1>
+                <h1>Millad456's Energy <span>War</span> Map</h1>
                 <p>Global oil & gas infrastructure disruptions · Jan 2026 – present</p>
             </div>
             <div class="header-badges">
@@ -131,6 +131,28 @@
             </div>
         </div>
 
+        <!-- ── TIMELINE BAR ─────────────────────────────────────────── -->
+        <div id="timeline-bar" class="timeline-bar">
+            <div class="tl-slider-wrap">
+                <input type="range" id="tl-slider" class="tl-slider" min="0" max="100" value="100" step="0.5" />
+                <div class="tl-ticks" id="tl-ticks"></div>
+            </div>
+
+            <span class="tl-date" id="tl-date">Today</span>
+
+            <div class="tl-mode-group" id="tl-mode-group">
+                <button class="tl-mode active" data-mode="cumulative">All Events</button>
+                <button class="tl-mode" data-mode="window">Window</button>
+            </div>
+
+            <select id="tl-window" class="tl-window" style="display:none" title="Fade window">
+                <option value="1">24h</option>
+                <option value="2">48h</option>
+                <option value="7" selected>7d</option>
+                <option value="14">14d</option>
+            </select>
+        </div>
+
         <!-- ── FOOTER ───────────────────────────────────────────────── -->
         <footer class="footer">
             <span>Data: Global Energy Monitor · GEM-GOIT · Manual incident logs</span>
@@ -143,7 +165,7 @@
     </div>
 
     <!-- Custom JS -->
-    <script src="./script.js"></script>
+    <script src="./script.js?v=2"></script>
 </body>
 
 </html>
