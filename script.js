@@ -3,9 +3,19 @@
 // ═══════════════════════════════════════════════════════════════════
 
 /* ── 1. ALPHA VANTAGE — LIVE PRICE DATA ───────────────────────────── */
+// ⚠ Alpha Vantage API key — exposed client-side because this is a static site.
+//    For production, proxy through a serverless function.
 const AV_KEY = '11JJWBDWYIBP6J8M';
 const AV_BASE = 'https://www.alphavantage.co/query';
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+// ─── Named constants ─────────────────────────────────────────────
+const DAY_MS = 1000 * 60 * 60 * 24;
+const SLIDER_STEP = 0.5;
+const COORD_PRECISION = 4;
+const MARKER_SIZE = 36;
+const MARKER_ICON_RATIO = 0.58;
+const WINDOW_FADE_THRESHOLD = 0.5;
 
 // Commodity config: avFn = null means not on AV free tier (TTF)
 const COMMODITY_META = {
@@ -603,20 +613,21 @@ class TimelineController {
     constructor(map, destroyedLayer) {
         this.map = map;
         this.layer = destroyedLayer;
-        this.incidents = [];           // [{ facility, lat, lng, type, date: Date, row: {csv row} }]
-        this.markers = new Map();      // "lat,lng" key -> L.marker with pixel-offset stacking
+        this.incidents = [];
+        this.markers = new Map();
+
+        // Cache DOM refs once
+        this._sliderEl = document.getElementById('tl-slider');
+        this._dateLabelEl = document.getElementById('tl-date');
+        this._ticksEl = document.getElementById('tl-ticks');
 
         this.dateMin = null;
         this.dateMax = null;
         this.currentDate = null;
         this.totalDays = 1;
 
-        this.isPlaying = false;
         this.mode = 'cumulative';
         this.windowDays = 7;
-
-        this.animationId = null;
-        this.lastFrame = 0;
 
         this._ready = false;
     }
@@ -637,8 +648,8 @@ class TimelineController {
 
         allDates.sort((a, b) => a - b);
         this.dateMin = new Date('2026-01-01');
-        this.dateMax = new Date(); // today
-        this.totalDays = Math.max(1, Math.ceil((this.dateMax - this.dateMin) / (1000 * 60 * 60 * 24)));
+        this.dateMax = new Date(allDates[allDates.length - 1]);
+        this.totalDays = Math.max(1, Math.ceil((this.dateMax - this.dateMin) / DAY_MS));
         this.currentDate = new Date(this.dateMax);
         this._ready = true;
 
@@ -677,29 +688,29 @@ class TimelineController {
     setWindowDays(days) { this.windowDays = parseInt(days, 10) || 2; if (this.mode === 'window') this._renderMarkers(); }
 
     _updateSliderBounds() {
-        const slider = document.getElementById('tl-slider');
+        const slider = this._sliderEl;
         if (!slider) return;
         slider.max = String(this.totalDays);
         slider.min = '0';
-        slider.step = '0.5';
+        slider.step = String(SLIDER_STEP);
     }
 
     _syncSliderToDate() {
-        const slider = document.getElementById('tl-slider');
+        const slider = this._sliderEl;
         if (!slider || !this.dateMin || !this.currentDate) return;
-        const days = (this.currentDate - this.dateMin) / (1000 * 60 * 60 * 24);
+        const days = (this.currentDate - this.dateMin) / DAY_MS;
         slider.value = String(Math.max(0, Math.min(this.totalDays, days)));
     }
 
     _updateDateLabel() {
-        const el = document.getElementById('tl-date');
+        const el = this._dateLabelEl;
         if (el && this.currentDate) {
             el.textContent = fmtDateShort(this.currentDate);
         }
     }
 
     _buildTicks() {
-        const container = document.getElementById('tl-ticks');
+        const container = this._ticksEl;
         if (!container || !this.dateMin || !this.incidents.length) return;
 
         const range = this.dateMax - this.dateMin;
@@ -731,11 +742,8 @@ class TimelineController {
         if (!this._ready || !this.currentDate) return;
 
         const currentMs = this.currentDate.getTime();
-        const dayMs = 1000 * 60 * 60 * 24;
-
         // Group visible incidents by location key "lat,lng"
-        // Each location group has { lat, lng, opacity, rows: [csv rows] }
-        const locationGroups = new Map(); // "lat,lng" -> { lat, lng, type, opacity, rows }
+        const locationGroups = new Map();
 
         for (const inc of this.incidents) {
             const incidentMs = inc.date ? inc.date.getTime() : NaN;
@@ -747,7 +755,7 @@ class TimelineController {
             if (this.mode === 'cumulative') {
                 show = incidentMs <= currentMs;
             } else {
-                const windowMs = this.windowDays * dayMs;
+                const windowMs = this.windowDays * DAY_MS;
                 const age = currentMs - incidentMs;
                 if (age >= 0 && age <= windowMs) {
                     show = true;
