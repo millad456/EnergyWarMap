@@ -540,11 +540,11 @@ body {
 /* ─── INCIDENT LOG PANEL ─────────────────────────────────────────── */
 .incident-log-panel {
     position: absolute;
-    top: 14px;
-    left: 14px;
+    bottom: 24px;
+    left: 260px;
     z-index: 1000;
     width: 340px;
-    max-width: calc(100vw - 28px);
+    max-width: calc(100vw - 300px);
     background: var(--bg-card);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -620,7 +620,7 @@ body {
 .ilp-body {
     display: flex;
     flex-direction: column;
-    max-height: 50vh;
+    max-height: 75vh;
 }
 
 .ilp-toolbar {
