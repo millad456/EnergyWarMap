@@ -77,6 +77,13 @@ def fetch_news_articles(api_key: str, days: int) -> list[dict]:
         '"oil depot" fire',
         '"refinery" strike drone Ukraine',
         '"pipeline" disrupted attack',
+        '"oil refinery" fire',
+        '"gas facility" explosion',
+        '"energy infrastructure" sabotage',
+        '"pipeline" explosion',
+        'refinery fire',
+        'gas plant attack',
+        'oil infrastructure damaged',
     ]
 
     all_articles: list[dict] = []
@@ -137,9 +144,9 @@ def extract_with_deepseek(articles: list[dict]) -> list[dict]:
 
     prompt = f"""You are a data extraction assistant for EnergyWarMap, a project tracking global disruptions to oil and gas infrastructure.
 
-Below are {len(article_texts)} news articles about potential energy infrastructure incidents (attacks, explosions, fires, shutdowns, drone strikes, etc.).
+Below are {len(article_texts)} news articles about potential energy infrastructure incidents (attacks, explosions, fires, shutdowns, drone strikes, sabotage, etc.).
 
-For EACH article that describes a VERIFIABLE incident (not just political commentary or general market analysis), extract the following fields as a JSON object. If an article does NOT describe a specific incident, skip it.
+For EACH article that describes a specific incident affecting energy infrastructure, extract the following fields as a JSON object. Be inclusive — include incidents even if details are sparse or unconfirmed. Only skip articles that are purely political commentary, market analysis, or general discussion with no mention of a specific facility or location.
 
 Fields to extract:
 - Facility (string): name of the facility (refinery, pipeline, port, field, etc.). Use "Unknown" if not specified.
