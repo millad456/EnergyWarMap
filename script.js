@@ -649,7 +649,7 @@ class TimelineController {
         allDates.sort((a, b) => a - b);
         this.dateMin = new Date('2026-01-01');
         this.dateMax = new Date(allDates[allDates.length - 1]);
-        this.totalDays = Math.max(1, Math.ceil((this.dateMax - this.dateMin) / DAY_MS));
+        this.totalDays = Math.max(1, Math.round((this.dateMax - this.dateMin) / DAY_MS));
         this.currentDate = new Date(this.dateMax);
         this._ready = true;
 

@@ -266,7 +266,41 @@ Then navigate to `http://localhost:8000` in any modern browser.
 The project is deployed to **GitHub Pages** at:
 `https://millad456.github.io/EnergyWarMap/`
 
-The GitHub Actions workflow automatically redeploys on every push to `main` and runs daily at midnight to check for new incident data.
+The GitHub Actions workflow automatically redeploys on every push to `main` and runs daily at 06:00 UTC to check for new incident data.
+
+### Manual Workflow Trigger
+
+To manually run the incident fetcher outside of the scheduled time:
+
+**Via GitHub UI (recommended):**
+1. Go to the repository on GitHub: `https://github.com/millad456/EnergyWarMap`
+2. Click the **Actions** tab
+3. In the left sidebar, click **"Update Incidents (Daily)"**
+4. Click the **"Run workflow"** dropdown button on the right
+5. Keep the default `main` branch selected and click **"Run workflow"**
+
+![Manual trigger location: Actions tab → workflow name → Run workflow button]
+
+**Via GitHub CLI:**
+```bash
+gh workflow run "Update Incidents (Daily)" --repo millad456/EnergyWarMap
+```
+
+**Via GitHub API (requires a PAT with `workflow` scope):**
+```bash
+curl -X POST \
+  -H "Authorization: Bearer YOUR_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/millad456/EnergyWarMap/actions/workflows/update-incidents.yml/dispatches \
+  -d '{"ref":"main"}'
+```
+
+The workflow will:
+1. Check out the repository
+2. Install Python dependencies (`requests`, `openai`)
+3. Run `scripts/fetch_incidents.py` which fetches news via NewsAPI, extracts incidents via DeepSeek, geocodes with Nominatim, and appends new entries to the CSV
+4. Commit and push any new incidents back to the repository
+5. GitHub Pages automatically rebuilds the site
 
 ---
 
