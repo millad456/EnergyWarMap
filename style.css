@@ -540,8 +540,8 @@ body {
 /* ─── INCIDENT LOG PANEL ─────────────────────────────────────────── */
 .incident-log-panel {
     position: absolute;
-    bottom: 24px;
-    left: 260px;
+    bottom: 22px;
+    left: 320px;
     z-index: 1000;
     width: 340px;
     max-width: calc(100vw - 300px);
