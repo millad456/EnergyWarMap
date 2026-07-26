@@ -388,4 +388,19 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        log("FATAL: Unhandled exception in main()")
+        log(tb)
+        report = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "error": str(e),
+            "traceback": tb,
+            "success": False,
+        }
+        REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        REPORT_PATH.write_text(json.dumps(report, indent=2))
+        sys.exit(1)
