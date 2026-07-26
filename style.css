@@ -898,6 +898,7 @@ body {
 
 #price-panel.minimized {
     height: 44px;
+    width: auto;
 }
 
 #price-panel.minimized .price-panel-body {
