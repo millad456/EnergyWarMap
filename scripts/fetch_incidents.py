@@ -70,6 +70,7 @@ def fetch_news_articles(api_key: str, days: int) -> list[dict]:
     from_date = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
 
     queries = [
+        # Existing
         '"oil refinery" attack drone',
         '"gas pipeline" explosion',
         '"energy infrastructure" drone strike',
@@ -84,6 +85,25 @@ def fetch_news_articles(api_key: str, days: int) -> list[dict]:
         'refinery fire',
         'gas plant attack',
         'oil infrastructure damaged',
+        # Actor-specific
+        '"Israel" strike oil refinery',
+        '"Iran" missile oil terminal',
+        '"Houthi" attack oil',
+        'Ukraine drone refinery',
+        # Infrastructure gaps
+        '"offshore platform" attack',
+        '"LNG" explosion terminal',
+        '"oil tanker" attack',
+        '"gas station" drone Ukraine',
+        '"fuel station" strike',
+        # Attack types
+        '"missile strike" refinery',
+        '"sabotage" oil pipeline',
+        '"cyberattack" energy infrastructure',
+        # Regions
+        '"Red Sea" oil tanker attack',
+        '"Libya" oil field shutdown',
+        '"Venezuela" refinery fire',
     ]
 
     all_articles: list[dict] = []
@@ -151,7 +171,7 @@ For EACH article that describes a specific incident affecting energy infrastruct
 Fields to extract:
 - Facility (string): name of the facility (refinery, pipeline, port, field, etc.). Use "Unknown" if not specified.
 - Country (string): country where the incident occurred.
-- Facility Type (string): "Oil", "Gas", "Pipeline", or "Gas/Petrochemical"
+- Facility Type (string): "Oil", "Gas", "Gas Station", "Pipeline", or "Gas/Petrochemical"
 - Lat (float or null): approximate latitude. Use null if unclear.
 - Lon (float or null): approximate longitude. Use null if unclear.
 - Description (string): 1-2 sentence summary of what happened.

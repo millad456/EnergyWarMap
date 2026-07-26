@@ -493,6 +493,7 @@ document.getElementById('ic-next').addEventListener('click', function (e) {
 function normaliseFacilityType(raw) {
     const t = (raw || '').toLowerCase().trim();
     if (t.includes('pipeline')) return 'Pipeline';
+    if (t.includes('gas station') || t === 'gas station') return 'Gas Station';
     if (t.includes('gas')) return 'Gas';
     return 'Oil';
 }
@@ -500,6 +501,9 @@ function normaliseFacilityType(raw) {
 // All incident markers are uniformly orange — icons distinguish type
 function getMarkerConfig(facilityType) {
     const t = normaliseFacilityType(facilityType);
+    if (t === 'Gas Station') {
+        return { icon: './assets/gas-station-icon.png', animName: 'Orange' };
+    }
     if (t === 'Pipeline') {
         return { icon: './assets/pipeline-icon.png', animName: 'Orange' };
     }
