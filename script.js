@@ -1223,8 +1223,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             });
 
-            document.getElementById('badge-count').textContent =
-                parsedIncidents.length + ' Incident' + (parsedIncidents.length !== 1 ? 's' : '');
+            var badge = document.getElementById('badge-count');
+            if (badge) {
+                badge.textContent = parsedIncidents.length + ' Incident' + (parsedIncidents.length !== 1 ? 's' : '');
+            }
 
             // Feed incidents to the timeline controller AND the incident log panel
             timelineCtrl.setIncidents(parsedIncidents);
