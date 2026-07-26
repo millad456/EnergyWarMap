@@ -502,7 +502,7 @@ function normaliseFacilityType(raw) {
 function getMarkerConfig(facilityType) {
     const t = normaliseFacilityType(facilityType);
     if (t === 'Gas Station') {
-        return { icon: './assets/gas-station-icon.png', animName: 'Orange' };
+        return { icon: './assets/gas-station-icon.png', animName: 'Orange', noFilter: true };
     }
     if (t === 'Pipeline') {
         return { icon: './assets/pipeline-icon.png', animName: 'Orange' };
@@ -524,6 +524,7 @@ function makeIncidentIcon(facilityType, count, opacity) {
     const glowColor = '249,115,22';
     const multiStrike = (typeof count === 'number' && count > 1);
 
+    const filterStyle = cfg.noFilter ? '' : 'filter: brightness(0) invert(1);';
     const html = `
         <div class="incident-marker" style="
             width:${size}px; height:${size}px;
@@ -539,7 +540,7 @@ function makeIncidentIcon(facilityType, count, opacity) {
             <img src="${cfg.icon}" style="
                 width:${size * 0.58}px; height:${size * 0.58}px;
                 object-fit:contain;
-                filter: brightness(0) invert(1);
+                ${filterStyle}
                 pointer-events:none;
                 display:block;
             " />
