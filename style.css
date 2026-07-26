@@ -568,9 +568,9 @@ body {
 .ilp-header {
     display: flex;
     align-items: center;
-    padding: 10px 14px;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.04);
+    padding: 12px 14px;
+    gap: 10px;
+    background: rgba(255, 185, 0, 0.06);
     border-bottom: 1px solid var(--border);
     cursor: pointer;
     user-select: none;
@@ -579,7 +579,7 @@ body {
 }
 
 .ilp-header:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(255, 185, 0, 0.1);
 }
 
 .ilp-header-icon {
