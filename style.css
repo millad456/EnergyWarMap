@@ -537,6 +537,239 @@ body {
     flex-shrink: 0;
 }
 
+/* ─── INCIDENT LOG PANEL ─────────────────────────────────────────── */
+.incident-log-panel {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 1000;
+    width: 340px;
+    max-width: calc(100vw - 28px);
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', sans-serif;
+}
+
+.incident-log-panel.collapsed {
+    width: auto;
+    min-width: unset;
+}
+
+.incident-log-panel.collapsed .ilp-body {
+    display: none;
+}
+
+.ilp-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.ilp-header:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.ilp-header-icon {
+    font-size: 0.85rem;
+    color: var(--accent-gold);
+    flex-shrink: 0;
+}
+
+.ilp-header-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.03em;
+}
+
+.ilp-badge {
+    background: rgba(255, 77, 77, 0.15);
+    color: var(--accent-red);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 77, 77, 0.3);
+    margin-left: auto;
+}
+
+.ilp-toggle {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.incident-log-panel.collapsed .ilp-toggle {
+    transform: rotate(180deg);
+}
+
+.ilp-body {
+    display: flex;
+    flex-direction: column;
+    max-height: 50vh;
+}
+
+.ilp-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+.ilp-sort-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+}
+
+.ilp-sort-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 18px;
+}
+
+.ilp-sort-btn:hover {
+    color: var(--text-secondary);
+    border-color: var(--accent-gold);
+}
+
+.ilp-sort-btn.active {
+    background: rgba(255, 185, 0, 0.12);
+    color: var(--accent-gold);
+    border-color: rgba(255, 185, 0, 0.3);
+}
+
+.ilp-list {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Compact scrollbar */
+.ilp-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.ilp-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ilp-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+.ilp-empty {
+    padding: 24px 14px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.ilp-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.ilp-row:hover {
+    background: rgba(255, 185, 0, 0.08);
+}
+
+.ilp-row:last-child {
+    border-bottom: none;
+}
+
+.ilp-row-marker {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    flex-shrink: 0;
+    margin-top: 5px;
+    box-shadow: 0 0 4px rgba(255, 77, 77, 0.5);
+}
+
+.ilp-row-content {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.4;
+}
+
+.ilp-row-facility {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ilp-row-meta {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.ilp-row-meta .ilp-country {
+    color: var(--text-secondary);
+}
+
+.ilp-row-meta .ilp-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+}
+
+.ilp-row-source {
+    font-size: 0.62rem;
+    color: var(--accent-blue);
+    text-decoration: none;
+    flex-shrink: 0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.ilp-row-source:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
 /* ─── PRICE PANEL ─────────────────────────────────────────────────── */
 /* ─── INCIDENT MARKER GLOW ANIMATIONS ────────────────────────────── */
 @keyframes marker-glow-Oil {

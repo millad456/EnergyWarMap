@@ -39,6 +39,26 @@
             </div>
         </header>
 
+        <!-- ── INCIDENT LOG PANEL (top-left, inside map area) ──────── -->
+        <div id="incident-log-panel" class="incident-log-panel collapsed">
+            <div class="ilp-header" id="ilp-header">
+                <span class="ilp-header-icon" aria-hidden="true">&#9776;</span>
+                <span class="ilp-header-label">Incident Log</span>
+                <span class="ilp-badge" id="ilp-badge">0</span>
+                <span class="ilp-toggle" id="ilp-toggle">&#9654;</span>
+            </div>
+            <div class="ilp-body" id="ilp-body">
+                <div class="ilp-toolbar">
+                    <span class="ilp-sort-label">Sort</span>
+                    <button class="ilp-sort-btn active" data-dir="desc" id="ilp-sort-desc">Newest</button>
+                    <button class="ilp-sort-btn" data-dir="asc" id="ilp-sort-asc">Oldest</button>
+                </div>
+                <div class="ilp-list" id="ilp-list">
+                    <div class="ilp-empty">Loading incidents…</div>
+                </div>
+            </div>
+        </div>
+
         <!-- ── MAP ─────────────────────────────────────────────────── -->
         <div id="map" class="map"></div>
 

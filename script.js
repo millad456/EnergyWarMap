@@ -544,6 +544,136 @@ function makeIncidentIcon(facilityType, count, opacity) {
     });
 }
 
+/* ─── INCIDENT LOG PANEL ──────────────────────────────────────────── */
+class IncidentLogPanel {
+    constructor(map) {
+        this.map = map;
+        this.incidents = [];
+        this.sortDir = 'desc'; // newest first by default
+        this._panel = document.getElementById('incident-log-panel');
+        this._list = document.getElementById('ilp-list');
+        this._badge = document.getElementById('ilp-badge');
+        this._sortDesc = document.getElementById('ilp-sort-desc');
+        this._sortAsc = document.getElementById('ilp-sort-asc');
+
+        // Toggle expand/collapse
+        document.getElementById('ilp-header').addEventListener('click', () => {
+            this._panel.classList.toggle('collapsed');
+        });
+
+        // Sort buttons
+        this._sortDesc.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this._setSort('desc');
+        });
+        this._sortAsc.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this._setSort('asc');
+        });
+    }
+
+    _setSort(dir) {
+        this.sortDir = dir;
+        this._sortDesc.classList.toggle('active', dir === 'desc');
+        this._sortAsc.classList.toggle('active', dir === 'asc');
+        this._renderRows();
+    }
+
+    /** Called when incident data is ready from CSV parse */
+    setIncidents(incidents) {
+        this.incidents = incidents;
+        this._badge.textContent = incidents.length;
+        this._renderRows();
+    }
+
+    _renderRows() {
+        if (!this.incidents.length) {
+            this._list.innerHTML = '<div class="ilp-empty">No incidents loaded.</div>';
+            return;
+        }
+
+        // Sort by date
+        const sorted = [...this.incidents].sort((a, b) => {
+            const diff = a.date.getTime() - b.date.getTime();
+            return this.sortDir === 'desc' ? -diff : diff;
+        });
+
+        let html = '';
+        for (const inc of sorted) {
+            const row = inc.row;
+            const country = (row.Country || '—').trim();
+            const facility = inc.facility;
+            const dateStr = (row.Date || '—').trim();
+            const sourceUrl = (row['Source URL'] || '').trim();
+            const lat = inc.lat;
+            const lng = inc.lng;
+
+            // Truncate source URL for display
+            let sourceDisplay = 'source';
+            if (sourceUrl) {
+                try {
+                    const u = new URL(sourceUrl);
+                    sourceDisplay = u.hostname.replace('www.', '') + u.pathname.split('/').slice(0, 2).join('/');
+                    if (sourceDisplay.length > 30) sourceDisplay = sourceDisplay.slice(0, 28) + '…';
+                } catch (_) {
+                    sourceDisplay = sourceUrl.length > 30 ? sourceUrl.slice(0, 28) + '…' : sourceUrl;
+                }
+            }
+
+            html += `
+                <div class="ilp-row" data-lat="${lat}" data-lng="${lng}" data-row-index="${this.incidents.indexOf(inc)}">
+                    <div class="ilp-row-marker"></div>
+                    <div class="ilp-row-content">
+                        <div class="ilp-row-facility">${this._esc(facility)}</div>
+                        <div class="ilp-row-meta">
+                            <span class="ilp-country">${this._esc(country)}</span>
+                            <span class="ilp-date">${this._esc(dateStr)}</span>
+                        </div>
+                    </div>
+                    ${sourceUrl ? `<a href="${this._esc(sourceUrl)}" target="_blank" rel="noopener" class="ilp-row-source" title="${this._esc(sourceUrl)}">${this._esc(sourceDisplay)}</a>` : ''}
+                </div>`;
+        }
+
+        this._list.innerHTML = html;
+
+        // Click handler on rows — pan to marker and show card
+        this._list.querySelectorAll('.ilp-row').forEach((el) => {
+            el.addEventListener('click', (e) => {
+                // Don't interfere with source link clicks
+                if (e.target.closest('.ilp-row-source')) return;
+
+                const lat = parseFloat(el.dataset.lat);
+                const lng = parseFloat(el.dataset.lng);
+                if (isNaN(lat) || isNaN(lng)) return;
+
+                // Pan map to the incident location
+                this.map.setView([lat, lng], 8, { animate: true });
+
+                // Find the incident and show its card
+                const idx = parseInt(el.dataset.rowIndex, 10);
+                const inc = this.incidents[idx];
+                if (inc) {
+                    showIncidentCard([inc.row]);
+                }
+
+                // Optionally collapse the panel after clicking
+                // Comment this out if you want it to stay open:
+                // this._panel.classList.add('collapsed');
+            });
+        });
+    }
+
+    _esc(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&')
+            .replace(/</g, '<')
+            .replace(/>/g, '>')
+            .replace(/"/g, '"')
+            .replace(/'/g, '&#39;');
+    }
+}
+
 /* ── 6. TIMELINE CONTROLLER ───────────────────────────────────────── */
 
 /**
@@ -1044,6 +1174,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    /* ── INCIDENT LOG PANEL ──────────────────────────────────────── */
+    var incidentLogPanel = new IncidentLogPanel(map);
+
     /* ── DESTROYED INFRASTRUCTURE CSV ───────────────────────────── */
     var timelineCtrl = new TimelineController(map, layers.destroyed);
 
@@ -1090,8 +1223,9 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('badge-count').textContent =
                 parsedIncidents.length + ' Incident' + (parsedIncidents.length !== 1 ? 's' : '');
 
-            // Feed incidents to the timeline controller
+            // Feed incidents to the timeline controller AND the incident log panel
             timelineCtrl.setIncidents(parsedIncidents);
+            incidentLogPanel.setIncidents(parsedIncidents);
         }
     });
 
