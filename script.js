@@ -665,12 +665,8 @@ class IncidentLogPanel {
 
     _esc(str) {
         if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+        var m = { '&': '\x26\x61\x6d\x70\x3b', '<': '\x26\x6c\x74\x3b', '>': '\x26\x67\x74\x3b', '"': '\x26\x71\x75\x6f\x74\x3b', "'": '\x26\x23\x33\x39\x3b' };
+        return String(str).replace(/[&<>"']/g, function(ch) { return m[ch]; });
     }
 }
 
