@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   fetch-incidents:
@@ -15,12 +16,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -37,6 +39,7 @@ jobs:
           LOOKBACK_DAYS: 2
         run: |
           python scripts/fetch_incidents.py
+        shell: bash
 
       - name: Read last run report
         id: report
@@ -47,6 +50,7 @@ jobs:
           else
             echo 'summary={"appended":0}' >> $GITHUB_OUTPUT
           fi
+        shell: bash
 
       - name: Check for changes
         id: changes
@@ -56,6 +60,7 @@ jobs:
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
+        shell: bash
 
       - name: Commit and push changes
         if: steps.changes.outputs.changed == 'true'
@@ -65,4 +70,5 @@ jobs:
           git add mapData/DestroyedInfrastructureList.csv scripts/last_run_report.json
           INCIDENTS=$(python -c "import json; r=json.load(open('scripts/last_run_report.json')); print(r.get('incidents_appended', 0))")
           git commit -m "auto: add $INCIDENTS new incident(s) [skip ci]"
-          git push
+          git push origin HEAD:main
+        shell: bash

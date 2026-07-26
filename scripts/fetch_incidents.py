@@ -62,6 +62,7 @@ NOMINATIM_DELAY = 1.1  # seconds between requests (respect usage policy)
 
 def log(msg: str):
     print(f"[fetch-incidents] {msg}", flush=True)
+    print(f"[fetch-incidents] {msg}", file=sys.stderr, flush=True)
 
 
 def fetch_news_articles(api_key: str, days: int) -> list[dict]:
