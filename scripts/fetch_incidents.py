@@ -140,19 +140,10 @@ def fetch_news_articles(api_key: str, days: int) -> list[dict]:
     return all_articles
 
 
-def extract_with_deepseek(articles: list[dict]) -> list[dict]:
-    """
-    Use DeepSeek to extract structured incident data from news articles.
-    Returns list of dicts with fields matching the CSV schema.
-    """
-    if not articles:
-        return []
-
-    client = OpenAI(api_key=DEEPSEEK_KEY, base_url=DEEPSEEK_BASE)
-
-    # Prepare article summaries for the prompt
+def _deepseek_extract_batch(client, articles_slice: list[dict], batch_num: int, total_batches: int, aggressive: bool = False) -> list[dict]:
+    """Send a batch of articles to DeepSeek and return parsed incidents."""
     article_texts = []
-    for i, a in enumerate(articles[:25]):  # limit to 25 per batch
+    for i, a in enumerate(articles_slice):
         title = (a.get("title") or "").strip()
         desc = (a.get("description") or "").strip()[:500]
         content = (a.get("content") or "").strip()[:800]
@@ -162,25 +153,46 @@ def extract_with_deepseek(articles: list[dict]) -> list[dict]:
         combo = f"[{i+1}] Title: {title}\n    Source: {source} ({pub_date})\n    Description: {desc}\n    Snippet: {content}\n    URL: {url}"
         article_texts.append(combo)
 
-    prompt = f"""You are a data extraction assistant for EnergyWarMap, a project tracking global disruptions to oil and gas infrastructure.
-
-Below are {len(article_texts)} news articles about potential energy infrastructure incidents (attacks, explosions, fires, shutdowns, drone strikes, sabotage, etc.).
-
-For EACH article that describes a specific incident affecting energy infrastructure, extract the following fields as a JSON object. Be inclusive — include incidents even if details are sparse or unconfirmed. Only skip articles that are purely political commentary, market analysis, or general discussion with no mention of a specific facility or location.
+    if aggressive:
+        system_msg = "You extract structured incident data from news articles. Be aggressive — extract ANY article mentioning a real incident even if details are minimal. Respond only with valid JSON arrays."
+        prompt_suffix = """For EACH article that mentions a specific incident affecting energy infrastructure (even with minimal details), extract the following fields as JSON. Be VERY inclusive — only skip articles that are purely opinion pieces with zero mention of any facility or location. Include incidents even if the article is brief or unconfirmed.
 
 Fields to extract:
-- Facility (string): name of the facility (refinery, pipeline, port, field, etc.). Use "Unknown" if not specified.
+- Facility (string): name of the facility. Use "Unknown" only if truly not mentioned.
 - Country (string): country where the incident occurred.
 - Facility Type (string): "Oil", "Gas", "Gas Station", "Pipeline", or "Gas/Petrochemical"
 - Lat (float or null): approximate latitude. Use null if unclear.
 - Lon (float or null): approximate longitude. Use null if unclear.
 - Description (string): 1-2 sentence summary of what happened.
-- Date (string): date of incident in YYYY-MM-DD format, or a descriptive range like "Late March 2026". Use the article's publication date as fallback.
-- Capacity (string): capacity affected or "No info found". Format like "~240,000 b/d", "0.173 bcm/d", "17% of total capacity".
-- Source URL (string): the article URL.
-- Attack Happened (string): "TRUE" if this describes a deliberate attack/drone strike/missile/sabotage, "FALSE" if it's an accident/technical failure.
+- Date (string): date of incident in YYYY-MM-DD format or descriptive range.
+- Capacity (string): capacity affected or "No info found".
+- Source URL (string): the article URL exactly.
+- Attack Happened (string): "TRUE" if deliberate attack/sabotage, "FALSE" if accident.
 
-Respond ONLY with a valid JSON array of objects. No markdown, no explanation.
+Respond ONLY with a valid JSON array of objects. No markdown, no explanation."""
+    else:
+        system_msg = "You extract structured incident data from news articles. Respond only with valid JSON arrays."
+        prompt_suffix = """For EACH article that describes a specific incident affecting energy infrastructure, extract the following fields as a JSON object. Be inclusive — include incidents even if details are sparse or unconfirmed. Only skip articles that are purely political commentary, market analysis, or general discussion with no mention of a specific facility or location.
+
+Fields to extract:
+- Facility (string): name of the facility. Use "Unknown" if not specified.
+- Country (string): country where the incident occurred.
+- Facility Type (string): "Oil", "Gas", "Gas Station", "Pipeline", or "Gas/Petrochemical"
+- Lat (float or null): approximate latitude. Use null if unclear.
+- Lon (float or null): approximate longitude. Use null if unclear.
+- Description (string): 1-2 sentence summary of what happened.
+- Date (string): date of incident in YYYY-MM-DD format or descriptive range.
+- Capacity (string): capacity affected or "No info found".
+- Source URL (string): the article URL.
+- Attack Happened (string): "TRUE" if deliberate attack/sabotage, "FALSE" if accident.
+
+Respond ONLY with a valid JSON array of objects. No markdown, no explanation."""
+
+    prompt = f"""You are a data extraction assistant for EnergyWarMap, a project tracking global disruptions to oil and gas infrastructure.
+
+Below are {len(article_texts)} news articles about potential energy infrastructure incidents (attacks, explosions, fires, shutdowns, drone strikes, sabotage, etc.).
+
+{prompt_suffix}
 
 Articles:
 {chr(10).join(article_texts)}"""
@@ -189,16 +201,15 @@ Articles:
         resp = client.chat.completions.create(
             model=DEEPSEEK_MODEL,
             messages=[
-                {"role": "system", "content": "You extract structured incident data from news articles. Respond only with valid JSON arrays."},
+                {"role": "system", "content": system_msg},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.1,
             max_tokens=4000,
         )
         raw = resp.choices[0].message.content.strip()
-        log(f"DeepSeek response length: {len(raw)} chars")
+        log(f"Batch {batch_num}/{total_batches} — response length: {len(raw)} chars")
 
-        # Parse JSON — handle cases where the model wraps it in ```json ... ```
         if raw.startswith("```"):
             raw = re.sub(r"^```(?:json)?\s*", "", raw)
             raw = re.sub(r"\s*```$", "", raw)
@@ -206,16 +217,67 @@ Articles:
         extracted = json.loads(raw)
         if not isinstance(extracted, list):
             extracted = [extracted]
-        log(f"DeepSeek extracted {len(extracted)} incident records")
+        log(f"Batch {batch_num}/{total_batches} — extracted {len(extracted)} records")
         return extracted
 
     except json.JSONDecodeError as e:
-        log(f"JSON parse error from DeepSeek: {e}")
-        log(f"Raw response (first 500 chars): {raw[:500]}")
+        log(f"Batch {batch_num}/{total_batches} — JSON parse error: {e}")
+        log(f"Raw (first 300): {raw[:300]}")
         return []
     except Exception as e:
-        log(f"DeepSeek API error: {e}")
+        log(f"Batch {batch_num}/{total_batches} — API error: {e}")
         return []
+
+
+def extract_with_deepseek(articles: list[dict]) -> list[dict]:
+    """
+    Use DeepSeek to extract structured incident data from ALL news articles.
+    Processes articles in sliding batches of 25, accumulates results.
+    If zero results, retries with an aggressive prompt.
+    """
+    if not articles:
+        return []
+
+    client = OpenAI(api_key=DEEPSEEK_KEY, base_url=DEEPSEEK_BASE)
+    batch_size = 25
+    all_extracted = []
+
+    # Process all articles in overlapping batches (sliding window)
+    total_articles = len(articles)
+    total_batches = max(1, (total_articles + batch_size - 1) // batch_size)
+
+    log(f"Processing {total_articles} articles in {total_batches} batches of {batch_size}...")
+
+    for batch_num in range(total_batches):
+        start = batch_num * batch_size
+        end = min(start + batch_size, total_articles)
+        batch = articles[start:end]
+        if not batch:
+            continue
+        result = _deepseek_extract_batch(client, batch, batch_num + 1, total_batches)
+        all_extracted.extend(result)
+        time.sleep(0.5)  # rate limit between batches
+
+    # If zero results from standard extraction, retry with aggressive prompt on first batch
+    if not all_extracted and articles:
+        log("Standard extraction returned zero — retrying with aggressive prompt on first 25...")
+        first_batch = articles[:25]
+        retry_result = _deepseek_extract_batch(client, first_batch, 1, 1, aggressive=True)
+        all_extracted.extend(retry_result)
+
+    # Deduplicate extracted by source URL
+    seen_urls = set()
+    deduped = []
+    for inc in all_extracted:
+        url = (inc.get("Source URL") or "").strip().rstrip("/")
+        if url and url not in seen_urls:
+            seen_urls.add(url)
+            deduped.append(inc)
+        elif not url:
+            deduped.append(inc)
+
+    log(f"DeepSeek total: {len(all_extracted)} raw → {len(deduped)} unique")
+    return deduped
 
 
 def geocode_facility(facility: str, country: str, approx_lat: float | None, approx_lon: float | None) -> tuple[float, float] | None:
