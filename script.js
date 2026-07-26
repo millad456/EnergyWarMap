@@ -378,6 +378,13 @@ function initPricePanel() {
         if (!mini) {
             setTimeout(() => buildPriceChart(activeCommodity), 50);
         }
+        // Slide the incident log panel alongside the price panel
+        var ilp = document.getElementById('incident-log-panel');
+        if (ilp) {
+            // When price panel is minimized (~200px wide), ILP sits at ~230px right
+            // When expanded (360px), ILP sits at 390px right (14px margin + 360px + 16px gap)
+            ilp.style.right = mini ? '230px' : '390px';
+        }
     });
 
     tabs.addEventListener('click', (e) => {
