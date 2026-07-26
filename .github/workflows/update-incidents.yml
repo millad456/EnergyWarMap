@@ -39,10 +39,10 @@ jobs:
         id: report
         run: |
           if [ -f scripts/last_run_report.json ]; then
+            python -c "import json; r=json.load(open('scripts/last_run_report.json')); print('summary=' + json.dumps({'appended': r.get('incidents_appended',0), 'fetched': r.get('articles_fetched',0), 'extracted': r.get('incidents_extracted',0), 'errors': len(r.get('errors',[]))}))" >> $GITHUB_OUTPUT
             cat scripts/last_run_report.json
-            echo "summary=$(cat scripts/last_run_report.json)" >> $GITHUB_OUTPUT
           else
-            echo '{"incidents_appended": 0}' > scripts/last_run_report.json
+            echo 'summary={"appended":0}' >> $GITHUB_OUTPUT
           fi
 
       - name: Check for changes
