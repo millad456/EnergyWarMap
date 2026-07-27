@@ -524,7 +524,7 @@ function makeIncidentIcon(facilityType, count, opacity) {
     const glowColor = '249,115,22';
     const multiStrike = (typeof count === 'number' && count > 1);
 
-    const filterStyle = cfg.icon.includes('gas-station') ? '' : 'filter: brightness(0) invert(1);';
+    const filterStyle = 'filter: brightness(0) invert(1);';
     const html = `
         <div class="incident-marker" style="
             width:${size}px; height:${size}px;
