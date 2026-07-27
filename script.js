@@ -175,7 +175,8 @@ function setLoading(loading) {
 }
 
 // Attack dates → indices resolved against loaded labels
-const ATTACK_DATES = [
+// Populated dynamically from CSV after parse — also accepts hardcoded seed dates
+var ATTACK_DATES = [
     '2026-02-26', '2026-03-01', '2026-03-02', '2026-03-09', '2026-03-14',
     '2026-03-16', '2026-03-18', '2026-03-19', '2026-03-22', '2026-03-26',
     '2026-03-29', '2026-04-01', '2026-04-03', '2026-04-05', '2026-04-07',
@@ -185,6 +186,29 @@ const ATTACK_DATES = [
     '2026-06-25', '2026-06-26', '2026-06-27', '2026-06-28'
 ];
 let attackIndices = [];
+
+/** Extract unique dates from parsed incidents and add them to ATTACK_DATES */
+function updateAttackDates(incidents) {
+    var seen = {};
+    for (var i = 0; i < ATTACK_DATES.length; i++) {
+        seen[ATTACK_DATES[i]] = true;
+    }
+    for (var i = 0; i < incidents.length; i++) {
+        var iso = fmtDateShort(incidents[i].date);
+        if (iso && iso !== '—' && !seen[iso]) {
+            // Try to get the original YYYY-MM-DD from the CSV row
+            var rawDate = (incidents[i].row.Date || '').trim();
+            if (rawDate && !seen[rawDate]) {
+                ATTACK_DATES.push(rawDate);
+                seen[rawDate] = true;
+            }
+        }
+    }
+    // Rebuild chart if it exists
+    if (priceChart) {
+        buildPriceChart(activeCommodity);
+    }
+}
 
 
 /* ── 2. PRICE PANEL LOGIC ─────────────────────────────────────────── */
@@ -1236,6 +1260,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Feed incidents to the timeline controller AND the incident log panel
             timelineCtrl.setIncidents(parsedIncidents);
             incidentLogPanel.setIncidents(parsedIncidents);
+            // Add incident dates to the price chart's attack lines
+            updateAttackDates(parsedIncidents);
         }
     });
 
