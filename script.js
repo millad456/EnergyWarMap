@@ -1188,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ── DESTROYED INFRASTRUCTURE CSV ───────────────────────────── */
     var timelineCtrl = new TimelineController(map, layers.destroyed);
 
-    Papa.parse('./mapData/DestroyedInfrastructureList.csv', {
+    Papa.parse('./mapData/DestroyedInfrastructureList.csv?v=6', {
         download: true,
         header: true,
         skipEmptyLines: true,
