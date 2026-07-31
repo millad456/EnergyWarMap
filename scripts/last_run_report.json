@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-07-30T08:06:09.039838+00:00",
+  "timestamp": "2026-07-31T08:32:08.506497+00:00",
   "lookback_days": 7,
-  "articles_fetched": 252,
+  "articles_fetched": 237,
   "incidents_extracted": 0,
   "incidents_appended": 0,
   "errors": []
